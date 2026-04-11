@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin · RantBox</title>
+  <link rel="stylesheet" href="admin-style.css"/>
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-top">
+      <span class="admin-brand-logo">RantBox</span>
+      <span class="admin-brand-sub">Admin Dashboard</span>
+    </div>
+
+    <div class="admin-nav">
+      <div class="admin-nav-section">Main</div>
+      <button class="admin-nav-link active" data-sec="overview">
+        <span class="ni">📊</span><span>Overview</span>
+      </button>
+
+      <div class="admin-nav-section">Content</div>
+      <button class="admin-nav-link" data-sec="rants">
+        <span class="ni">💬</span><span>All Rants</span>
+      </button>
+      <button class="admin-nav-link" data-sec="reports">
+        <span class="ni">🚩</span><span>Reports</span>
+        <span class="admin-nav-badge" id="reports-badge" style="display:none">0</span>
+      </button>
+
+      <div class="admin-nav-section">Users</div>
+      <button class="admin-nav-link" data-sec="users">
+        <span class="ni">👥</span><span>All Users</span>
+      </button>
+    </div>
+
+    <div class="admin-sidebar-footer">
+      <div class="admin-user-row">
+        <div class="av xs" id="admin-av" style="background:#7c5cfc">AD</div>
+        <div>
+          <div class="admin-user-name">admin</div>
+          <div class="admin-user-role">Administrator</div>
+        </div>
+      </div>
+      <button class="admin-logout-btn" id="logout-btn">
+        🚪 <span>Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="admin-main">
+
+    <!-- Top bar -->
+    <div class="admin-topbar">
+      <h1 id="topbar-title">Overview</h1>
+      <div class="admin-topbar-right">
+        <button class="admin-refresh-btn" id="refresh-btn">↻ Refresh</button>
+        <a href="index.html" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;text-decoration:none;transition:all 0.16s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">← Go to App</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ══ OVERVIEW ══ -->
+      <section class="admin-section active" id="sec-overview">
+        <div class="stats-grid">
+          <div class="stat-card c-purple">
+            <div class="sc-icon">👥</div>
+            <div class="sc-label">Total Users</div>
+            <div class="sc-num" id="s-users">0</div>
+            <div class="sc-sub">registered accounts</div>
+          </div>
+          <div class="stat-card c-cyan">
+            <div class="sc-icon">💬</div>
+            <div class="sc-label">Total Rants</div>
+            <div class="sc-num" id="s-rants">0</div>
+            <div class="sc-sub">all time</div>
+          </div>
+          <div class="stat-card c-green">
+            <div class="sc-icon">📅</div>
+            <div class="sc-label">Rants Today</div>
+            <div class="sc-num" id="s-today">0</div>
+            <div class="sc-sub">last 24 hours</div>
+          </div>
+          <div class="stat-card c-red">
+            <div class="sc-icon">🚫</div>
+            <div class="sc-label">Banned Users</div>
+            <div class="sc-num" id="s-banned">0</div>
+            <div class="sc-sub">restricted accounts</div>
+          </div>
+          <div class="stat-card c-amber">
+            <div class="sc-icon">🗨️</div>
+            <div class="sc-label">Comments</div>
+            <div class="sc-num" id="s-comments">0</div>
+            <div class="sc-sub">total comments</div>
+          </div>
+          <div class="stat-card c-pink">
+            <div class="sc-icon">🚩</div>
+            <div class="sc-label">Pending Reports</div>
+            <div class="sc-num" id="s-reports" style="color:var(--danger)">0</div>
+            <div class="sc-sub">needs review</div>
+          </div>
+        </div>
+
+        <div class="section-hdr">
+          <h2>Recent Activity</h2>
+        </div>
+        <div id="recent-rants"></div>
+      </section>
+
+      <!-- ══ ALL RANTS ══ -->
+      <section class="admin-section" id="sec-rants">
+        <div class="section-hdr">
+          <h2>All Rants</h2>
+          <div class="section-hdr-actions">
+            <input type="text" id="rant-search" placeholder="Search rants…" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);padding:8px 14px;font-size:13px;font-family:Inter,sans-serif;outline:none;width:220px"/>
+          </div>
+        </div>
+        <div id="all-rants-list"></div>
+      </section>
+
+      <!-- ══ REPORTS ══ -->
+      <section class="admin-section" id="sec-reports">
+        <div class="section-hdr">
+          <h2>Report Queue</h2>
+          <div class="section-hdr-actions">
+            <select id="report-filter" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-size:13px;font-family:Inter,sans-serif;outline:none;cursor:pointer">
+              <option value="pending">Pending</option>
+              <option value="resolved">Resolved</option>
+              <option value="dismissed">Dismissed</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+        </div>
+        <div id="reports-list"></div>
+      </section>
+
+      <!-- ══ USERS ══ -->
+      <section class="admin-section" id="sec-users">
+        <div class="section-hdr">
+          <h2>User Management</h2>
+          <div class="section-hdr-actions">
+            <input type="text" id="user-search" placeholder="Search users…" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);padding:8px 14px;font-size:13px;font-family:Inter,sans-serif;outline:none;width:220px"/>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="admin-tbl">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Rants</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="storage.js"></script>
+<script src="utils.js"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
