@@ -1,0 +1,70 @@
+body.auth-page {
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px;
+}
+.auth-wrap { width: 100%; max-width: 420px; }
+
+.auth-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.auth-logo .logo {
+  font-size: 44px; font-weight: 900;
+  background: linear-gradient(135deg, var(--accent), #06b6d4);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; letter-spacing: -2px; line-height: 1;
+}
+.auth-logo p { font-size: 14px; color: var(--text3); margin-top: 8px; }
+
+.auth-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px 28px;
+}
+.auth-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 24px; }
+
+.auth-err {
+  background: var(--danger-bg); border: 1px solid rgba(248,113,113,0.3);
+  border-radius: var(--radius); padding: 10px 14px;
+  color: var(--danger); font-size: 13px; margin-bottom: 16px; display: none;
+}
+.auth-err.show { display: block; }
+
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+
+.auth-submit {
+  width: 100%; padding: 13px; font-size: 15px; font-weight: 700;
+  background: var(--accent); color: #fff; border-radius: var(--radius);
+  border: none; cursor: pointer; margin-top: 4px; transition: background 0.15s;
+}
+.auth-submit:hover:not(:disabled) { background: #8b5cf6; }
+.auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.auth-foot { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text3); }
+.auth-foot a { color: var(--accent); font-weight: 600; }
+
+.pw-wrap {
+  position: relative;
+}
+.pw-wrap input {
+  padding-right: 44px;
+}
+.pw-eye {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); padding: 4px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; transition: color 0.15s;
+}
+.pw-eye:hover { color: var(--text); }
+.pw-eye svg { width: 18px; height: 18px; display: block; }
+
+
+.or-div {
+  display: flex; align-items: center; gap: 10px;
+  margin: 18px 0; color: var(--text3); font-size: 13px;
+}
+.or-div::before, .or-div::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
