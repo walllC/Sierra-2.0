@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_ID'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['user_ID'];
     $content = isset($_POST['content']) ? trim($_POST['content']) : '';
-    $anonymous = isset($_POST['anonymous']) ? filter_var($_POST['anonymous'], FILTER_VALIDATE_BOOLEAN) : false;
+    $anonymous = isset($_POST['anonymous']) ? (bool)$_POST['anonymous'] : false;
 
     if (empty($content)) {
         echo json_encode(['success' => false, 'message' => 'Rant content cannot be empty']);
