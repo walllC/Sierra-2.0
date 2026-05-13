@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
 $db   = 'echowall';
-$user = 'root'; // Palitan mo ito kung iba ang username mo
-$pass = '';     // Default ay walang password sa XAMPP
+$user = 'root'; 
+$pass = '';    
 
 $conn = new mysqli($host, $user, $pass, $db);
 
