@@ -20,10 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sbAv) {
     const u = Storage.getUserByUsername(ME.username);
     if (u && u.avatar) {
-      if (u && u.avatar) {
-        sbAv.style.background = 'none';
-        sbAv.innerHTML = `<img src="${u.avatar}" class="av-img" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-      }
+      sbAv.style.background = 'none';
+      sbAv.innerHTML = `<img src="${u.avatar}" class="av-img" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     } else {
       sbAv.style.background = Utils.getAvatarColor(ME.username);
       sbAv.textContent = Utils.getInitials(ME.username);
@@ -183,7 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const homeAv = c.querySelector('#home-av');
     const circ = 75.4;
 
-    // set avatar image if uploaded
     const uData = Storage.getUserByUsername(ME.username);
     if (uData && uData.avatar) {
       homeAv.style.background = 'none';
@@ -217,38 +214,31 @@ document.addEventListener('DOMContentLoaded', () => {
       const content = ta.value.trim();
       if (!content || content.length > MAX) return;
       postBtn.disabled = true; postBtn.textContent = 'Posting…';
-      
+
       const formData = new FormData();
       formData.append('content', content);
       formData.append('anonymous', isAnon ? '1' : '0');
-      
-      fetch('save_rant.php', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          ta.value = ''; ring.style.strokeDashoffset = circ; 
-          anonChk.checked = false; isAnon = false;
-          homeAv.style.background = Utils.getAvatarColor(ME.username);
-          homeAv.textContent = Utils.getInitials(ME.username);
-          homeAv.style.fontSize = '';
-          Utils.showToast(isAnon ? '👻 Posted anonymously!' : 'Rant posted!', 'success');
-          loadFeed('');
-          renderRight();
-        } else {
-          Utils.showToast(`Failed to post: ${data.message}`, 'error');
-        }
-        postBtn.disabled = false;
-        postBtn.textContent = 'Post';
-      })
-      .catch(err => {
-        console.error('Error posting rant:', err);
-        Utils.showToast('Error posting rant', 'error');
-        postBtn.disabled = false;
-        postBtn.textContent = 'Post';
-      });
+
+      fetch('save_rant.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            ta.value = ''; ring.style.strokeDashoffset = circ;
+            anonChk.checked = false; isAnon = false;
+            homeAv.style.background = Utils.getAvatarColor(ME.username);
+            homeAv.textContent = Utils.getInitials(ME.username);
+            homeAv.style.fontSize = '';
+            Utils.showToast('Rant posted!', 'success');
+            loadFeed(''); renderRight();
+          } else {
+            Utils.showToast(`Failed to post: ${data.message}`, 'error');
+          }
+          postBtn.disabled = false; postBtn.textContent = 'Post';
+        })
+        .catch(() => {
+          Utils.showToast('Error posting rant', 'error');
+          postBtn.disabled = false; postBtn.textContent = 'Post';
+        });
     });
 
     c.querySelector('#home-search').addEventListener('input', e => loadFeed(e.target.value.trim()));
@@ -257,46 +247,33 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadFeed(q) {
       const feedEl = c.querySelector('#feed');
       feedEl.innerHTML = '<div class="loading" style="text-align:center;padding:20px;color:var(--text3)">Loading rants...</div>';
-      
-      // Fetch rants from database
+
       fetch('api/get_rants.php')
-        .then(response => response.json())
+        .then(r => r.json())
         .then(rants => {
-          // Ensure rants is an array
           if (!Array.isArray(rants)) rants = [];
-          
-          // filter blocked
           const blocked = Storage.getBlockedUsers(ME.username);
           rants = rants.filter(r => !blocked.includes(r.username));
-          
-          // Apply search filter
-          if (q) {
-            rants = rants.filter(r => r.content.toLowerCase().includes(q.toLowerCase()) || (!r.anonymous && r.username.toLowerCase().includes(q.toLowerCase())));
-          }
-          
-          // Apply tab filter
+          if (q) rants = rants.filter(r => r.content.toLowerCase().includes(q.toLowerCase()) || (!r.anonymous && r.username.toLowerCase().includes(q.toLowerCase())));
           if (activeTab === 'following') {
             const following = Storage.getFollowing(ME.username) || [];
             rants = rants.filter(r => following.includes(r.username) || r.user_ID === ME.user_ID);
           }
-          
           feedEl.innerHTML = '';
           if (!rants.length) {
             feedEl.innerHTML = `<div class="empty"><div class="e-icon">💬</div><p>${activeTab === 'following' ? 'Follow someone to see their rants!' : q ? 'No results.' : 'No rants yet!'}</p></div>`;
             return;
           }
-          
           rants.forEach(r => feedEl.appendChild(buildCard(r)));
         })
-        .catch(err => {
-          console.error('Error loading rants:', err);
+        .catch(() => {
           feedEl.innerHTML = '<div class="empty"><div class="e-icon">⚠️</div><p>Error loading rants. Please try again.</p></div>';
         });
     }
   }
 
   // ════════════════════════════════════════
-  // EXPLORE (trending by likes)
+  // EXPLORE
   // ════════════════════════════════════════
   function renderExplore(c) {
     const trending = Storage.getTrendingRants();
@@ -467,7 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if (!mine) { const av = Utils.avatar(toUser, 'xs'); row.appendChild(av); }
           const bubble = document.createElement('div'); bubble.className = 'chat-bubble';
           bubble.textContent = m.text; row.appendChild(bubble);
-          // seen tag on last message
           if (mine && i === msgs.length - 1 && m.read) {
             const seen = document.createElement('div'); seen.className = 'seen-tag'; seen.textContent = 'Seen';
             const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end';
@@ -504,14 +480,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = Storage.getUserByUsername(username);
     const rants = Storage.getRantsByUser(username);
     const color = Utils.getAvatarColor(username);
-    const today = rants.filter(r => Utils.isToday(r.createdAt)).length;
     const followers = Storage.getFollowers(username);
     const following = Storage.getFollowing(username);
     const amFollowing = Storage.isFollowing(ME.username, username);
     const amBlocked = Storage.isBlocked(ME.username, username);
     const blocked = Storage.getBlockedUsers(ME.username);
 
-    // avatar element
     const avHTML = user && user.avatar
       ? `<img src="${user.avatar}" class="av-img" style="width:64px;height:64px;border:4px solid var(--bg);box-shadow:0 0 0 1px var(--border2);cursor:${isMe ? 'pointer' : 'default'}">`
       : `<div class="av lg profile-av-ring" style="background:${color};cursor:${isMe ? 'pointer' : 'default'}">${Utils.getInitials(username)}</div>`;
@@ -563,17 +537,12 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="tabs"><button class="tab active">Rants</button></div>
       <div id="p-feed"></div>`;
 
-    // avatar upload
     if (isMe) {
       const avInput = c.querySelector('#av-input');
       if (avInput) avInput.addEventListener('change', () => {
         const file = avInput.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = e => {
-          Storage.updateUser(ME.username, { avatar: e.target.result });
-          Utils.showToast('Profile photo updated!', 'success');
-          render('profile');
-        };
+        reader.onload = e => { Storage.updateUser(ME.username, { avatar: e.target.result }); Utils.showToast('Profile photo updated!', 'success'); render('profile'); };
         reader.readAsDataURL(file);
       });
     }
@@ -627,8 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function openFollowModal(title, userList) {
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    const modal = document.createElement('div'); modal.className = 'modal-overlay';
     const items = userList.length
       ? userList.map(u => `<div class="follow-list-item" data-u="${Utils.escapeHtml(u)}"><div class="av sm" style="background:${Utils.getAvatarColor(u)}">${Utils.getInitials(u)}</div><div class="follow-list-info"><div class="fl-name">@${Utils.escapeHtml(u)}</div></div></div>`).join('')
       : `<div class="empty" style="padding:32px"><p>Nobody here yet.</p></div>`;
@@ -649,8 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openEditProfile() {
     const user = Storage.getUserByUsername(ME.username);
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    const modal = document.createElement('div'); modal.className = 'modal-overlay';
     modal.innerHTML = `<div class="modal-box">
       <h3>Edit Profile</h3>
       <div class="settings-field"><label>Bio</label><textarea id="bio-in" rows="3" placeholder="Tell people about yourself…">${Utils.escapeHtml(user?.bio || '')}</textarea></div>
@@ -716,10 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn btn-danger-soft btn-sm" id="logout-set">Log Out</button>
       </div>`;
 
-    c.querySelector('#theme-check').addEventListener('change', e => {
-      const next = e.target.checked ? 'dark' : 'light';
-      Storage.setTheme(next); applyTheme(next);
-    });
+    c.querySelector('#theme-check').addEventListener('change', e => { const next = e.target.checked ? 'dark' : 'light'; Storage.setTheme(next); applyTheme(next); });
     c.querySelector('#save-bio').addEventListener('click', () => { Storage.updateUser(ME.username, { bio: c.querySelector('#set-bio').value.trim() }); Utils.showToast('Bio saved!', 'success'); });
     c.querySelector('#logout-set').addEventListener('click', () => Auth.logout());
     c.querySelector('#save-pw').addEventListener('click', () => {
@@ -738,6 +702,258 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ════════════════════════════════════════
+  // REPORT MODAL
+  // ════════════════════════════════════════
+  function openReportModal(rant) {
+    const modal = document.createElement('div'); modal.className = 'modal-overlay';
+    modal.innerHTML = `<div class="modal-box">
+      <h3>Report Rant</h3>
+      <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Why are you reporting this rant?</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${['Hate speech', 'Harassment', 'Spam', 'Misinformation', 'Explicit content', 'Other'].map(r => `
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;padding:8px;border-radius:var(--radius);border:1px solid var(--border)">
+            <input type="radio" name="report-reason" value="${r}"/> ${r}
+          </label>`).join('')}
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="r-cancel">Cancel</button>
+        <button class="btn btn-danger-soft btn-sm" id="r-submit">Submit Report</button>
+      </div></div>`;
+    document.body.appendChild(modal);
+    requestAnimationFrame(() => modal.classList.add('open'));
+    modal.querySelector('#r-cancel').addEventListener('click', () => { modal.classList.remove('open'); setTimeout(() => modal.remove(), 200); });
+    modal.querySelector('#r-submit').addEventListener('click', () => {
+      const reason = modal.querySelector('input[name="report-reason"]:checked');
+      if (!reason) { Utils.showToast('Pick a reason.', 'warning'); return; }
+      Storage.addReport({ rantId: rant.id, rantContent: rant.content, rantAuthor: rant.username, reportedBy: ME.username, reason: reason.value });
+      modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
+      Utils.showToast('Reported. Thank you.', 'success');
+    });
+    modal.addEventListener('click', e => { if (e.target === modal) { modal.classList.remove('open'); setTimeout(() => modal.remove(), 200); } });
+  }
+
+  // ════════════════════════════════════════
+  // COMMENTS: load & build
+  // ════════════════════════════════════════
+
+  // Fetches all comments for a rant and renders them into #cl-{rantId}
+  function loadComments(rantId, container) {
+    const list = container.querySelector(`#cl-${rantId}`);
+    if (!list) return;
+    list.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0">Loading…</div>';
+
+    fetch(`get_comments.php?rant_id=${rantId}`)
+      .then(r => r.json())
+      .then(comments => {
+        list.innerHTML = '';
+        if (!Array.isArray(comments) || !comments.length) {
+          list.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:8px 0">No comments yet.</div>`;
+          return;
+        }
+        comments.forEach(cm => {
+          list.appendChild(buildCommentItem(
+            {
+              id: cm.comment_ID || cm.comment_id,
+              username: cm.username,
+              text: cm.comment_text,
+              createdAt: cm.created_at,
+              reactions: cm.reactions || {},
+              user_reaction: cm.user_reaction || null,
+            },
+            rantId,
+            container
+          ));
+        });
+      })
+      .catch(err => {
+        console.error('Error loading comments:', err);
+        list.innerHTML = `<div style="font-size:13px;color:var(--danger);padding:8px 0">Failed to load comments.</div>`;
+      });
+  }
+
+  // Builds a single comment row (no nesting/depth — flat list)
+  function buildCommentItem(cm, rantId, container) {
+    const isOwn = cm.username === ME.username;
+
+    // Build initial reaction chips HTML from pre-loaded data
+    const initReactions = cm.reactions || {};
+    const initUserReaction = cm.user_reaction || null;
+    const initChips = Object.entries(initReactions)
+      .filter(([, count]) => count > 0)
+      .map(([emoji, count]) =>
+        `<div class="reaction-chip cm-reaction-chip ${initUserReaction === emoji ? 'mine' : ''}"
+              data-emoji="${emoji}" data-cid="${cm.id}">${emoji} ${count}</div>`
+      ).join('');
+
+    const wrap = document.createElement('div');
+    wrap.className = 'comment-wrap';
+    wrap.dataset.cid = cm.id;
+
+    const row = document.createElement('div');
+    row.className = 'comment-item';
+
+    // Avatar
+    const av = Utils.avatar(cm.username, 'xs');
+    av.style.cursor = 'pointer';
+    av.addEventListener('click', () => render('userprofile', { username: cm.username }));
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'comment-body';
+    body.innerHTML = `
+      <div class="comment-header">
+        <span class="comment-name" style="cursor:pointer">@${Utils.escapeHtml(cm.username)}</span>
+        <span class="comment-time">${Utils.timeAgo(cm.createdAt)}</span>
+      </div>
+      <div class="comment-text">${Utils.escapeHtml(cm.text)}</div>
+      <div class="reactions-row" id="crr-${cm.id}">${initChips}</div>
+      <div class="comment-actions">
+        <div class="reactions-wrap">
+          <button class="cm-action-btn cm-react-btn" title="React">
+            <span class="cm-react-icon">${initUserReaction || '😊'}</span>
+          </button>
+          <div class="reaction-picker" id="crp-${cm.id}">
+            ${REACTIONS.map(e => `<button class="r-emoji cm-r-emoji" data-emoji="${e}" data-cid="${cm.id}">${e}</button>`).join('')}
+          </div>
+        </div>
+        <button class="cm-action-btn cm-reply-btn">↩ Reply</button>
+        ${isOwn ? `<button class="cm-action-btn cm-del-btn" style="color:var(--danger)">🗑</button>` : ''}
+      </div>
+      <div class="cm-reply-input" style="display:none;margin-top:8px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="av xs" style="background:${Utils.getAvatarColor(ME.username)}">${Utils.getInitials(ME.username)}</div>
+          <input type="text" class="cm-reply-ta" placeholder="Reply to @${Utils.escapeHtml(cm.username)}…" maxlength="200"/>
+          <button class="btn btn-primary btn-xs cm-send-reply">Post</button>
+          <button class="btn btn-ghost btn-xs cm-cancel-reply">✕</button>
+        </div>
+      </div>`;
+
+    // Name click
+    body.querySelector('.comment-name').addEventListener('click', () => render('userprofile', { username: cm.username }));
+
+    // ── Comment reactions ──
+    async function postCommentReaction(emoji, cid) {
+      const formData = new FormData();
+      formData.append('comment_id', cid);
+      formData.append('reaction_type', emoji);
+      try {
+        const response = await fetch('save_comment_reaction.php', { method: 'POST', body: formData });
+        const data = await response.json();
+        if (data.success) {
+          updateCommentReactionChips(cid, data.reactions, data.user_reaction, body);
+          body.querySelector('.cm-react-icon').textContent = data.user_reaction || '😊';
+          body.querySelector(`#crp-${cid}`).classList.remove('open');
+        } else {
+          Utils.showToast(data.message || 'Failed to react', 'error');
+        }
+      } catch (err) {
+        console.error('Comment reaction error:', err);
+        Utils.showToast('Network error', 'error');
+      }
+    }
+
+    body.querySelector('.cm-react-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.reaction-picker.open').forEach(p => p.classList.remove('open'));
+      body.querySelector(`#crp-${cm.id}`).classList.toggle('open');
+    });
+
+    body.querySelectorAll('.cm-r-emoji').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        postCommentReaction(btn.dataset.emoji, btn.dataset.cid);
+      });
+    });
+
+    // Reaction chip clicks (delegated)
+    body.addEventListener('click', e => {
+      const chip = e.target.closest('.cm-reaction-chip');
+      if (chip) {
+        e.stopPropagation();
+        postCommentReaction(chip.dataset.emoji, chip.dataset.cid);
+      }
+    });
+
+    // ── Reply ──
+    body.querySelector('.cm-reply-btn').addEventListener('click', () => {
+      const inp = body.querySelector('.cm-reply-input');
+      const isOpen = inp.style.display !== 'none';
+      inp.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) inp.querySelector('.cm-reply-ta').focus();
+    });
+
+    body.querySelector('.cm-cancel-reply').addEventListener('click', () => {
+      body.querySelector('.cm-reply-input').style.display = 'none';
+    });
+
+    function sendReply() {
+      const ta = body.querySelector('.cm-reply-ta');
+      const text = ta.value.trim();
+      if (!text) return;
+
+      const formData = new FormData();
+      formData.append('rant_id', rantId);
+      formData.append('comment_text', text);
+      if (cm.id) formData.append('parent_id', cm.id);
+
+      fetch('save_comment.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            ta.value = '';
+            body.querySelector('.cm-reply-input').style.display = 'none';
+            loadComments(rantId, container);
+          } else {
+            Utils.showToast('Error: ' + (data.message || 'Unknown error'), 'error');
+          }
+        })
+        .catch(err => {
+          console.error('Reply error:', err);
+          Utils.showToast('Network error posting reply', 'error');
+        });
+    }
+
+    body.querySelector('.cm-send-reply').addEventListener('click', sendReply);
+    body.querySelector('.cm-reply-ta').addEventListener('keydown', e => { if (e.key === 'Enter') sendReply(); });
+
+    // ── Delete (own comments only) ──
+    if (isOwn) {
+      body.querySelector('.cm-del-btn').addEventListener('click', () => {
+        if (!confirm('Delete this comment?')) return;
+        const formData = new FormData();
+        formData.append('comment_id', cm.id);
+        fetch('delete_comment.php', { method: 'POST', body: formData })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              wrap.remove();
+              Utils.showToast('Comment deleted.', 'info');
+            } else {
+              Utils.showToast(data.message || 'Failed to delete', 'error');
+            }
+          })
+          .catch(() => Utils.showToast('Network error', 'error'));
+      });
+    }
+
+    row.appendChild(av);
+    row.appendChild(body);
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  function updateCommentReactionChips(cid, reactions, userReaction, container) {
+    const row = container.querySelector(`#crr-${cid}`);
+    if (!row) return;
+    const entries = Object.entries(reactions || {});
+    row.innerHTML = entries.length
+      ? entries.map(([emoji, count]) =>
+          `<div class="reaction-chip cm-reaction-chip ${userReaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-cid="${cid}">${emoji} ${count}</div>`
+        ).join('')
+      : '';
+  }
+
+  // ════════════════════════════════════════
   // BUILD POST CARD
   // ════════════════════════════════════════
   function buildCard(rant, readOnly = false) {
@@ -747,16 +963,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const dispName = showReal ? rant.username : 'Anonymous';
     const dispColor = showReal ? Utils.getAvatarColor(rant.username) : '#444455';
     const likes = rant.likes || [];
-    const liked = likes.includes(ME.username);
     const reactions = rant.reactions || {};
-    // Use database rant ID
+    const initialReactIcon = rant.user_reaction || '😊';
     const rantId = rant.id || rant.rant_ID;
     const totalComments = rant.comment_count || 0;
 
     const card = document.createElement('div');
     card.className = 'post-card'; card.dataset.id = rantId;
 
-    // avatar
+    // Avatar
     const av = document.createElement('div');
     av.className = 'av'; av.style.background = dispColor; av.style.flexShrink = '0';
     const uData = Storage.getUserByUsername(rant.username);
@@ -772,34 +987,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const right = document.createElement('div'); right.className = 'post-right';
 
-    // repost banner
     const repostHTML = rant.repostOf ? `<div class="repost-banner">🔁 Reposted from <strong>@${Utils.escapeHtml(rant.repostOf.username)}</strong></div>` : '';
 
-    // reactions summary
     const reactionChips = Object.entries(reactions)
-      .filter(([, users]) => (users || []).length > 0)
-      .map(([emoji, users]) => `<div class="reaction-chip ${(users || []).includes(ME.username) ? 'mine' : ''}" data-emoji="${emoji}" data-id="${rantId}">${emoji} ${users.length}</div>`)
-      .join('');
+      .filter(([, count]) => count > 0)
+      .map(([emoji, count]) =>
+        `<div class="reaction-chip ${rant.user_reaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-id="${rantId}">${emoji} ${count}</div>`
+      ).join('');
 
     right.innerHTML = `
       ${repostHTML}
       <div class="post-top">
-        <span class="post-name ${showReal ? '' : 'anon-name'}" ${showReal ? `data-u="${rant.username}"` : ''}>${isAnon ? '👻 ' : ''} @${Utils.escapeHtml(dispName)}</span>
+        <span class="post-name ${showReal ? '' : 'anon-name'}" ${showReal ? `data-u="${rant.username}"` : ''}>${isAnon ? '👻 ' : ''}@${Utils.escapeHtml(dispName)}</span>
         ${isAnon && isOwn ? '<span class="anon-badge">only you</span>' : ''}
         <span class="post-sep">·</span>
         <span class="post-time" data-ts="${rant.createdAt}">${Utils.timeAgo(rant.createdAt)}</span>
         ${rant.updatedAt ? '<span class="post-edited">edited</span>' : ''}
       </div>
       <div class="post-text">${Utils.escapeHtml(rant.content)}</div>
-      ${reactionChips ? `<div class="reactions-row" id="rr-${rantId}">${reactionChips}</div>` : '<div class="reactions-row" id="rr-' + rantId + '"></div>'}
+      <div class="reactions-row" id="rr-${rantId}">${reactionChips}</div>
       <div class="post-actions">
-        <button class="action-btn like-btn ${liked ? 'liked' : ''}" data-id="${rantId}">
-          <span class="a-icon">${liked ? '❤️' : '🤍'}</span>
-          <span class="like-count">${likes.length || ''}</span>
-        </button>
         <div class="reactions-wrap">
           <button class="action-btn react-btn" data-id="${rantId}" title="React">
-            <span class="a-icon">😊</span>
+            <span class="a-icon">${initialReactIcon}</span>
           </button>
           <div class="reaction-picker" id="rp-${rantId}">
             ${REACTIONS.map(e => `<button class="r-emoji" data-emoji="${e}" data-id="${rantId}">${e}</button>`).join('')}
@@ -812,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ${!isAnon ? `<button class="action-btn repost-btn" data-id="${rantId}" title="Repost"><span class="a-icon">🔁</span></button>` : ''}
         ${!readOnly && isOwn ? `
           <button class="action-btn edit-btn"><span class="a-icon">✏️</span></button>
-          <button class="action-btn del-act"><span class="a-icon">🗑️</span></button>`: ''}
+          <button class="action-btn del-act"><span class="a-icon">🗑️</span></button>` : ''}
         ${!isOwn ? `<button class="action-btn report-btn" data-id="${rantId}" title="Report" style="margin-left:auto"><span class="a-icon">🚩</span></button>` : ''}
       </div>
       <div class="inline-edit" id="edit-${rantId}">
@@ -836,62 +1046,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     card.appendChild(right);
 
-    // name click
+    // Name click
     if (showReal) {
       const nameEl = right.querySelector('.post-name');
       nameEl.style.cursor = 'pointer';
       nameEl.addEventListener('click', () => render('userprofile', { username: rant.username }));
     }
 
-    // like
-    right.querySelector('.like-btn').addEventListener('click', () => {
-      const newLikes = Storage.toggleLike(rantId, ME.username);
-      const btn = right.querySelector('.like-btn');
-      const nowLiked = newLikes.includes(ME.username);
-      btn.classList.toggle('liked', nowLiked);
-      btn.querySelector('.a-icon').textContent = nowLiked ? '❤️' : '🤍';
-      btn.querySelector('.like-count').textContent = newLikes.length || '';
-      if (nowLiked && rant.username !== ME.username && !isAnon) {
-        Storage.addNotification({ to: rant.username, from: ME.username, type: 'like', message: 'liked your rant.', rantId: rantId });
-        refreshBadges();
-      }
-    });
-
-    // reaction picker toggle
+    // ── Rant reactions ──
     right.querySelector('.react-btn').addEventListener('click', e => {
       e.stopPropagation();
       document.querySelectorAll('.reaction-picker.open').forEach(p => p.classList.remove('open'));
       right.querySelector(`#rp-${rantId}`).classList.toggle('open');
     });
-    document.addEventListener('click', () => { right.querySelector(`#rp-${rantId}`)?.classList.remove('open'); }, { once: true });
+
+    async function handleReaction(emoji, id) {
+      const formData = new FormData();
+      formData.append('rant_id', id);
+      formData.append('reaction_type', emoji);
+      try {
+        const response = await fetch('api/save_reaction.php', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (data.success) {
+          updateReactionChips(id, data.reactions, data.user_reaction, right);
+          right.querySelector('.react-btn .a-icon').textContent = data.user_reaction || '😊';
+          right.querySelector(`#rp-${id}`).classList.remove('open');
+          if (rant.username !== ME.username && !rant.anonymous && data.user_reaction) {
+            Storage.addNotification({ to: rant.username, from: ME.username, type: 'reaction', message: `reacted ${emoji} to your rant.`, rantId: id });
+            refreshBadges();
+          }
+        } else {
+          Utils.showToast(data.message || 'Failed to react', 'error');
+        }
+      } catch (err) {
+        console.error('Reaction error:', err);
+        Utils.showToast('Network error posting reaction', 'error');
+      }
+    }
 
     right.querySelectorAll('.r-emoji').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const newReactions = Storage.toggleReaction(rantId, ME.username, btn.dataset.emoji);
-        right.querySelector(`#rp-${rantId}`).classList.remove('open');
-        updateReactionChips(rantId, newReactions, right);
-        const myNew = Storage.getUserReaction(rantId, ME.username);
-        right.querySelector('.react-btn .a-icon').textContent = myNew || '😊';
-        if (myNew && rant.username !== ME.username && !isAnon) {
-          Storage.addNotification({ to: rant.username, from: ME.username, type: 'reaction', message: `reacted ${myNew} to your rant.`, rantId: rantId });
-          refreshBadges();
-        }
-      });
+      btn.addEventListener('click', e => { e.stopPropagation(); handleReaction(btn.dataset.emoji, btn.dataset.id); });
     });
 
-    // reaction chips click
     right.addEventListener('click', e => {
-      const chip = e.target.closest('.reaction-chip');
-      if (chip) {
-        const newReactions = Storage.toggleReaction(rant.id, ME.username, chip.dataset.emoji);
-        updateReactionChips(rant.id, newReactions, right);
-        const myNew = Storage.getUserReaction(rant.id, ME.username);
-        right.querySelector('.react-btn .a-icon').textContent = myNew || '😊';
-      }
+      const chip = e.target.closest('.reaction-chip:not(.cm-reaction-chip)');
+      if (chip) { e.stopPropagation(); handleReaction(chip.dataset.emoji, chip.dataset.id); }
     });
 
-    // repost
+    // ── Repost ──
     const repostBtn = right.querySelector('.repost-btn');
     if (repostBtn) repostBtn.addEventListener('click', () => {
       if (!confirm(`Repost this rant from @${rant.username}?`)) return;
@@ -904,63 +1107,58 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // report
+    // ── Report ──
     const reportBtn = right.querySelector('.report-btn');
     if (reportBtn) reportBtn.addEventListener('click', () => openReportModal(rant));
 
-    // comment toggle
+    // ── Comment toggle ──
     right.querySelector('.comment-toggle-btn').addEventListener('click', () => {
       const cs = right.querySelector(`#cs-${rantId}`);
       cs.classList.toggle('open');
-      if (cs.classList.contains('open')) loadComments(rantId, right);
+      if (cs.classList.contains('open')) {
+        loadComments(rantId, right);
+      }
     });
 
-    // send comment
+    // ── Post comment ──
     function sendComment() {
       const inp = right.querySelector('.comment-input');
       const text = inp.value.trim(); if (!text) return;
-      
-      // Save to database
+
       const formData = new FormData();
       formData.append('rant_id', rantId);
       formData.append('comment_text', text);
-      
-      fetch('save_comment.php', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          inp.value = '';
-          loadComments(rantId, right); // Reload from DB
-          if (rant.username !== ME.username && !isAnon) {
-            Storage.addNotification({ to: rant.username, from: ME.username, type: 'comment', message: 'commented on your rant.', rantId: rantId });
-            refreshBadges();
+
+      fetch('save_comment.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            inp.value = '';
+            loadComments(rantId, right);
+            if (rant.username !== ME.username && !isAnon) {
+              Storage.addNotification({ to: rant.username, from: ME.username, type: 'comment', message: 'commented on your rant.', rantId });
+              refreshBadges();
+            }
+            if (data.comment_count !== undefined) {
+              right.querySelector('.comment-count').textContent = data.comment_count || '';
+            }
+            Utils.showToast('Comment posted!', 'success');
+          } else {
+            Utils.showToast(`Failed to post comment: ${data.message || 'Unknown error'}`, 'error');
           }
-          // Update comment count from database response
-          if (data.comment_count !== undefined) {
-            right.querySelector('.comment-count').textContent = data.comment_count || '';
-          }
-          Utils.showToast('Comment posted!', 'success');
-        } else {
-          console.error('Comment error:', data.message);
-          Utils.showToast(`Failed to post comment: ${data.message || 'Unknown error'}`, 'error');
-        }
-      })
-      .catch(err => {
-        console.error('Error posting comment:', err);
-        Utils.showToast('Error posting comment: Network error', 'error');
-      });
+        })
+        .catch(() => Utils.showToast('Error posting comment', 'error'));
     }
+
     right.querySelector('.send-comment').addEventListener('click', sendComment);
     right.querySelector('.comment-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendComment(); });
 
-    // edit/delete
+    // ── Edit / Delete ──
     if (!readOnly && isOwn) {
       const editSection = right.querySelector(`#edit-${rantId}`);
       const editTa = editSection.querySelector('textarea');
       const ec = editSection.querySelector('.ec');
+
       right.querySelector('.edit-btn').addEventListener('click', () => {
         editSection.style.display = 'block';
         right.querySelector('.post-text').style.display = 'none';
@@ -992,167 +1190,31 @@ document.addEventListener('DOMContentLoaded', () => {
     return card;
   }
 
-  function updateReactionChips(rantId, reactions, container) {
+  function updateReactionChips(rantId, reactions, userReaction, container) {
     const row = container.querySelector(`#rr-${rantId}`);
     if (!row) return;
-    row.innerHTML = Object.entries(reactions)
-      .filter(([, users]) => (users || []).length > 0)
-      .map(([emoji, users]) => `<div class="reaction-chip ${(users || []).includes(ME.username) ? 'mine' : ''}" data-emoji="${emoji}" data-id="${rantId}">${emoji} ${users.length}</div>`)
-      .join('');
+    const entries = Object.entries(reactions || {});
+    row.innerHTML = entries.length
+      ? entries.map(([emoji, count]) =>
+          `<div class="reaction-chip ${userReaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-id="${rantId}">${emoji} ${count}</div>`
+        ).join('')
+      : '';
   }
 
-  // ── Report modal ──
-  function openReportModal(rant) {
-    const modal = document.createElement('div'); modal.className = 'modal-overlay';
-    modal.innerHTML = `<div class="modal-box">
-      <h3>Report Rant</h3>
-      <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Why are you reporting this rant?</p>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${['Hate speech', 'Harassment', 'Spam', 'Misinformation', 'Explicit content', 'Other'].map(r => `
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;padding:8px;border-radius:var(--radius);border:1px solid var(--border)">
-            <input type="radio" name="report-reason" value="${r}"/> ${r}
-          </label>`).join('')}
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="r-cancel">Cancel</button>
-        <button class="btn btn-danger-soft btn-sm" id="r-submit">Submit Report</button>
-      </div></div>`;
-    document.body.appendChild(modal);
-    requestAnimationFrame(() => modal.classList.add('open'));
-    modal.querySelector('#r-cancel').addEventListener('click', () => { modal.classList.remove('open'); setTimeout(() => modal.remove(), 200); });
-    modal.querySelector('#r-submit').addEventListener('click', () => {
-      const reason = modal.querySelector('input[name="report-reason"]:checked');
-      if (!reason) { Utils.showToast('Pick a reason.', 'warning'); return; }
-      Storage.addReport({ rantId: rant.id, rantContent: rant.content, rantAuthor: rant.username, reportedBy: ME.username, reason: reason.value });
-      modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
-      Utils.showToast('Reported. Thank you.', 'success');
-    });
-    modal.addEventListener('click', e => { if (e.target === modal) { modal.classList.remove('open'); setTimeout(() => modal.remove(), 200); } });
-  }
-
-// ── Comments & replies ──
-// ── Comments & replies ──
-function loadComments(rantId, container) {
-  const list = container.querySelector(`#cl-${rantId}`);
-  if (!list) return;
-
-  fetch(`get_comments.php?rant_id=${rantId}`)
-    .then(response => response.json())
-    .then(comments => {
-      list.innerHTML = '';
-      if (!comments || !comments.length) {
-        list.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:8px 0">No comments yet.</div>`;
-        return;
-      }
-      
-      comments.forEach(cm => {
-        const formattedComment = {
-          id: cm.comment_ID || cm.comment_id, 
-          username: cm.username,
-          text: cm.comment_text,
-          createdAt: cm.created_at,
-          likes: [] 
-        };
-        list.appendChild(buildCommentItem(formattedComment, rantId, container, 0));
-      });
-    })
-    .catch(err => console.error('Error loading comments:', err));
-}
-
-function buildCommentItem(cm, rantId, container, depth) {
-  const liked = false; 
-  const isOwn = cm.username === ME.username;
-  const wrap = document.createElement('div'); 
-  wrap.className = 'comment-wrap'; 
-  wrap.dataset.cid = cm.id;
-  
-  if (depth > 0) wrap.style.marginLeft = '32px';
-  
-  const row = document.createElement('div'); 
-  row.className = 'comment-item';
-  const av = Utils.avatar(cm.username, 'xs'); 
-  av.style.cursor = 'pointer';
-  av.addEventListener('click', () => render('userprofile', { username: cm.username }));
-  
-  const body = document.createElement('div'); 
-  body.className = 'comment-body';
-  body.innerHTML = `
-    <div class="comment-header">
-      <span class="comment-name">@${Utils.escapeHtml(cm.username)}</span>
-      <span class="comment-time">${Utils.timeAgo(cm.createdAt)}</span>
-    </div>
-    <div class="comment-text">${Utils.escapeHtml(cm.text)}</div>
-    <div class="comment-actions">
-      <button class="cm-action-btn cm-like-btn">
-        <span>🤍</span><span class="cm-like-count"></span>
-      </button>
-      <button class="cm-action-btn cm-reply-btn">↩ Reply</button>
-      ${isOwn ? `<button class="cm-action-btn cm-del-btn">🗑</button>` : ''}
-    </div>
-    <div class="cm-reply-input" style="display:none;margin-top:8px">
-      <div style="display:flex;gap:8px;align-items:center">
-        <div class="av xs" style="background:${Utils.getAvatarColor(ME.username)}">${Utils.getInitials(ME.username)}</div>
-        <input type="text" class="cm-reply-ta" placeholder="Reply to @${cm.username}…" maxlength="200"/>
-        <button class="btn btn-primary btn-xs cm-send-reply">Post</button>
-        <button class="btn btn-ghost btn-xs cm-cancel-reply">✕</button>
-      </div>
-    </div>`;
-    
-  row.appendChild(av); row.appendChild(body); wrap.appendChild(row);
-
-  body.querySelector('.cm-reply-btn').addEventListener('click', () => {
-    const inp = body.querySelector('.cm-reply-input');
-    inp.style.display = inp.style.display === 'none' ? 'block' : 'none';
-    if (inp.style.display === 'block') inp.querySelector('.cm-reply-ta').focus();
-  });
-  
-  body.querySelector('.cm-cancel-reply').addEventListener('click', () => { 
-    body.querySelector('.cm-reply-input').style.display = 'none'; 
-  });
-
-  function sendReply() {
-    const ta = body.querySelector('.cm-reply-ta'); 
-    const text = ta.value.trim(); 
-    if (!text) return;
-
-    const formData = new FormData();
-    formData.append('rant_id', rantId);
-    formData.append('comment_text', text);
-    if (cm.id) formData.append('parent_id', cm.id); 
-
-    fetch('save_comment.php', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        ta.value = '';
-        body.querySelector('.cm-reply-input').style.display = 'none';
-        loadComments(rantId, container); 
-      } else {
-        alert('Error: ' + data.message);
-      }
-    })
-    .catch(err => console.error('Fetch error:', err));
-  }
-
-  body.querySelector('.cm-send-reply').addEventListener('click', sendReply);
-  body.querySelector('.cm-reply-ta').addEventListener('keydown', e => { if (e.key === 'Enter') sendReply(); });
-
-  return wrap;
-}
-
-  // ── Rant modal ──
+  // ════════════════════════════════════════
+  // RANT MODAL (floating compose)
+  // ════════════════════════════════════════
   function openRantModal() {
     const modal = document.getElementById('rant-modal');
     modal.classList.add('open');
     document.getElementById('modal-ta').focus();
   }
+
   const modalCancel = document.getElementById('modal-cancel');
   const modalTa = document.getElementById('modal-ta');
   const modalPost = document.getElementById('modal-post');
   const modalCc = document.getElementById('modal-cc');
+
   if (modalCancel) modalCancel.addEventListener('click', () => { document.getElementById('rant-modal').classList.remove('open'); modalTa.value = ''; });
   if (modalTa) modalTa.addEventListener('input', () => {
     const len = modalTa.value.length;
@@ -1162,38 +1224,34 @@ function buildCommentItem(cm, rantId, container, depth) {
   if (modalPost) modalPost.addEventListener('click', () => {
     const content = modalTa.value.trim(); if (!content || content.length > MAX) return;
     modalPost.disabled = true; modalPost.textContent = 'Posting…';
-    
+
     const formData = new FormData();
     formData.append('content', content);
-    formData.append('anonymous', false);
-    
-    fetch('save_rant.php', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById('rant-modal').classList.remove('open');
-        modalTa.value = '';
-        Utils.showToast('Rant posted!', 'success');
-        if (currentPage === 'home') render('home');
-        renderRight();
-      } else {
-        Utils.showToast(`Failed to post: ${data.message}`, 'error');
-      }
-      modalPost.disabled = false;
-      modalPost.textContent = 'Post';
-    })
-    .catch(err => {
-      console.error('Error posting rant:', err);
-      Utils.showToast('Error posting rant', 'error');
-      modalPost.disabled = false;
-      modalPost.textContent = 'Post';
-    });
+    formData.append('anonymous', '0');
+
+    fetch('save_rant.php', { method: 'POST', body: formData })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('rant-modal').classList.remove('open');
+          modalTa.value = '';
+          Utils.showToast('Rant posted!', 'success');
+          if (currentPage === 'home') render('home');
+          renderRight();
+        } else {
+          Utils.showToast(`Failed to post: ${data.message}`, 'error');
+        }
+        modalPost.disabled = false; modalPost.textContent = 'Post';
+      })
+      .catch(() => {
+        Utils.showToast('Error posting rant', 'error');
+        modalPost.disabled = false; modalPost.textContent = 'Post';
+      });
   });
 
+  // ── Tick timestamps every 30s ──
   setInterval(() => { document.querySelectorAll('[data-ts]').forEach(el => el.textContent = Utils.timeAgo(el.dataset.ts)); }, 30000);
+
   refreshBadges();
   render('home');
 });

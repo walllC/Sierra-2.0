@@ -492,3 +492,65 @@ input::placeholder, textarea::placeholder { color: var(--text3); }
   .app { max-width: 100%; }
   .rb-toast { bottom: calc(var(--nav-h) + 16px); }
 }
+
+/* 🔥 REACTIONS - Perfect Facebook-style for your design */
+.reactions-bar {
+  display: flex; gap: 12px; font-size: 13px; color: var(--text3);
+  margin: 8px 0; padding: 4px 0; border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.reaction-count {
+  cursor: pointer; padding: 4px 8px; border-radius: 999px;
+  transition: all 0.15s; font-weight: 500;
+}
+
+.reaction-count:hover {
+  background: var(--bg3); color: var(--text);
+}
+
+.reaction-buttons {
+  display: flex; align-items: center; gap: 4px;
+  padding: 8px 0; margin: 4px 0;
+}
+
+.react-btn {
+  background: none !important; border: none !important;
+  padding: 8px 12px !important; border-radius: 999px !important;
+  font-size: 18px !important; cursor: pointer;
+  color: var(--text3) !important; transition: all 0.15s !important;
+  font-weight: 500 !important;
+}
+
+.react-btn:hover {
+  background: var(--accent-bg) !important; color: var(--accent) !important;
+}
+
+.react-btn.active {
+  background: var(--accent) !important; color: #fff !important;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.4);
+}
+
+.reaction-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 999px; padding: 3px 10px; font-size: 13px;
+  cursor: pointer; transition: all 0.15s; font-weight: 500;
+  margin-right: 8px; margin-bottom: 4px;
+}
+
+.reaction-chip:hover {
+  background: var(--accent-bg); border-color: var(--accent);
+  color: var(--accent);
+}
+
+.reaction-chip.active {
+  background: var(--accent); border-color: var(--accent);
+  color: #fff;
+}
+
+/* Mobile optimization */
+@media (max-width: 680px) {
+  .reaction-buttons { gap: 2px; }
+  .react-btn { padding: 6px 8px !important; font-size: 16px !important; }
+}

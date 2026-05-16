@@ -16,6 +16,7 @@ if (isset($_GET['logout'])) {
 
 // Get the logged-in user's name from the session
 $username = $_SESSION['username'];
+$userId = $_SESSION['user_ID'];  // 🔥 ADDED USER ID
 $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
 ?>
 <!DOCTYPE html>
@@ -26,19 +27,35 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
   <title>RantBox</title>
   <link rel="stylesheet" href="style.css"/>
 
+  <!-- 🔥 REACTIONS CSS -->
+  <style>
+    .rant { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; background: white; }
+    .reactions-bar { margin: 10px 0; font-size: 14px; color: #666; }
+    .reaction-counts span { margin-right: 15px; }
+    .reaction-buttons { display: flex; gap: 5px; margin: 10px 0; padding: 8px 0; border-top: 1px solid #eee; }
+    .react-btn { 
+      background: none; border: none; padding: 6px 12px; border-radius: 20px; 
+      cursor: pointer; font-size: 14px; transition: all 0.2s;
+    }
+    .react-btn:hover, .react-btn.active { 
+      background: #1877f2 !important; color: white !important; 
+    }
+    .reaction-display { display: flex; gap: 8px; font-size: 13px; color: #666; margin: 5px 0; }
+  </style>
+
   <script>
     const phpUser = {
         username: "<?php echo $username; ?>",
+        userId: <?php echo $userId; ?>,  // 🔥 ADDED
         role: "<?php echo $role; ?>"
     };
-    // This populates the localStorage that your original auth.js/feed.js look for
     localStorage.setItem('rantbox_session', JSON.stringify(phpUser));
     window.userFromPHP = phpUser;
   </script>
 </head>
 <body>
+<!-- YOUR EXISTING HTML EXACTLY SAME -->
 <div class="app">
-
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">RantBox</div>
     <button class="nav-item active" data-page="home"><span class="ni">🏠</span><span>Home</span></button>
@@ -82,7 +99,12 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
     </div>
   </aside>
 
-  <main class="center-col" id="center"></main>
+  <!-- 🔥 FEED CONTAINER -->
+  <main class="center-col" id="center">
+    <div id="feed-container">
+      <!-- RANTS LOAD HERE -->
+    </div>
+  </main>
 
   <aside class="right-col">
     <div class="right-box"><h3>🔥 Trending</h3><div id="trending-list">Loading…</div></div>
@@ -90,6 +112,7 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
   </aside>
 </div>
 
+<!-- YOUR EXISTING MODALS/NAV EXACTLY SAME -->
 <nav class="bottom-nav">
   <button class="bn-item active" data-page="home"><span class="bn-icon">🏠</span><span>Home</span></button>
   <button class="bn-item" data-page="explore"><span class="bn-icon">🔥</span><span>Explore</span></button>
