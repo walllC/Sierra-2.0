@@ -1182,8 +1182,23 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       right.querySelector('.del-act').addEventListener('click', () => {
         if (!confirm('Delete this rant?')) return;
-        Storage.deleteRant(rantId); Storage.deleteCommentsByRant(rantId);
-        Utils.showToast('Deleted.', 'info'); render(currentPage); renderRight();
+        const formData = new FormData();
+        formData.append('rant_id', rantId);
+
+        fetch('api/delete_rant.php', { method: 'POST', body: formData })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              Storage.deleteRant(rantId);
+              Storage.deleteCommentsByRant(rantId);
+              Utils.showToast('Deleted.', 'info');
+              render(currentPage);
+              renderRight();
+            } else {
+              Utils.showToast(data.message || 'Failed to delete', 'error');
+            }
+          })
+          .catch(() => Utils.showToast('Network error deleting rant', 'error'));
       });
     }
 
