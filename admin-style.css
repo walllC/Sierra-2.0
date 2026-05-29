@@ -45,6 +45,7 @@
   font-size: 22px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.5px;
 }
 
+/* ── Stats Grid ── */
 .stats-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 14px; margin-bottom: 32px;
@@ -64,6 +65,7 @@
   background-clip: text;
 }
 
+/* ── Table Card ── */
 .tbl-card {
   background: var(--bg2); border: 1px solid var(--border);
   border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px;
@@ -72,33 +74,45 @@
   padding: 14px 18px; border-bottom: 1px solid var(--border);
   font-size: 14px; font-weight: 700;
 }
-.admin-tbl {
+
+/* ── Admin Table (both class names supported) ── */
+.admin-tbl, .admin-table {
   width: 100%; border-collapse: collapse; font-size: 13px;
 }
-.admin-tbl th {
+.admin-tbl th, .admin-table th {
   text-align: left; padding: 9px 14px; font-size: 11px;
   font-weight: 600; color: var(--text3); text-transform: uppercase;
   letter-spacing: 0.05em; background: var(--bg3); border-bottom: 1px solid var(--border);
 }
-.admin-tbl td {
+.admin-tbl td, .admin-table td {
   padding: 11px 14px; border-bottom: 1px solid var(--border);
   color: var(--text); vertical-align: middle;
 }
-.admin-tbl tr:last-child td { border-bottom: none; }
-.admin-tbl tbody tr:hover { background: var(--bg3); }
+.admin-tbl tr:last-child td,
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-tbl tbody tr:hover,
+.admin-table tbody tr:hover { background: var(--bg3); }
 
+/* ── Badges ── */
 .badge {
   display: inline-block; font-size: 11px; font-weight: 700;
   padding: 3px 9px; border-radius: 999px; text-transform: uppercase;
 }
-.badge-admin       { background: rgba(167,139,250,0.15); color: var(--accent); }
-.badge-user        { background: var(--bg4); color: var(--text2); }
-.badge-active      { background: rgba(74,222,128,0.15); color: var(--success); }
-.badge-banned      { background: rgba(248,113,113,0.15); color: var(--danger); }
-.badge-deactivated { background: rgba(251,191,36,0.15); color: var(--warning); }
+/* Auto-color by content */
+.badge-admin,
+.badge[data-val="admin"]       { background: rgba(167,139,250,0.15); color: var(--accent); }
+.badge-user,
+.badge[data-val="user"]        { background: var(--bg4); color: var(--text2); }
+.badge-active,
+.badge[data-val="active"]      { background: rgba(74,222,128,0.15); color: var(--success); }
+.badge-banned,
+.badge[data-val="banned"]      { background: rgba(248,113,113,0.15); color: var(--danger); }
+.badge-deactivated,
+.badge[data-val="deactivated"] { background: rgba(251,191,36,0.15); color: var(--warning); }
 
 .ua-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 
+/* ── Rant Cards ── */
 .a-rant-card {
   background: var(--bg2); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 14px 16px;
@@ -110,6 +124,12 @@
 .a-rant-meta .time { font-size: 12px; color: var(--text3); }
 .a-rant-text { font-size: 13px; color: var(--text2); word-break: break-word; }
 
+/* ── Reports empty state ── */
+#reports-list p {
+  padding: 32px; text-align: center; color: var(--text3); font-size: 14px;
+}
+
+/* ── Mobile ── */
 @media (max-width: 768px) {
   .admin-sidebar { width: 52px; }
   .admin-brand span, .admin-nav-link span:last-child, .admin-footer { display: none; }

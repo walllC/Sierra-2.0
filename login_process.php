@@ -18,12 +18,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Note: If you used password_hash() during signup, use password_verify() here
         if ($password === $user['password']) {
             
+         // ✅ Check if banned
+    if ($user['status'] === 'banned') {
+        header("Location: login.php?error=banned");
+        exit();
+    }
             // Set session variables so the website "remembers" you
             $_SESSION['user_ID'] = $user['user_ID'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
 
             // Redirect based on role
+            
             if ($user['role'] === 'admin') {
                 header("Location: admin.php");
             } else {

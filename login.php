@@ -31,10 +31,17 @@ if (isset($_SESSION['user_ID'])) {
       <h2>Welcome back</h2>
       
       <?php if(isset($_GET['error'])): ?>
-        <div style="color: #ff4d4d; margin-bottom: 10px; font-size: 14px;">
-            <?php echo htmlspecialchars($_GET['error']); ?>
-        </div>
-      <?php endif; ?>
+    <div style="color: #ff4d4d; margin-bottom: 10px; font-size: 14px;">
+        <?php 
+        $error = $_GET['error'];
+        if ($error === 'banned') {
+            echo '⛔ Your account has been banned.';
+        } else {
+            echo htmlspecialchars($error);
+        }
+        ?>
+    </div>
+<?php endif; ?>
 
       <form action="login_process.php" method="POST">
         <div class="field">

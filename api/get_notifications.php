@@ -17,7 +17,7 @@ try {
         u.username as from_username,
         r.content as rant_content
     FROM notifications n
-    LEFT JOIN users u ON n.from_user_ID = u.user_ID
+    LEFT JOIN users u ON n.from_user_ID = u.user_IDs
     LEFT JOIN rants r ON n.rant_ID = r.rant_ID
     WHERE n.to_user_ID = ?
     ORDER BY n.created_at DESC

@@ -18,14 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Sidebar init ──
   const sbAv = document.getElementById('sb-av');
   if (sbAv) {
-    const u = Storage.getUserByUsername(ME.username);
-    if (u && u.avatar) {
-      sbAv.style.background = 'none';
-      sbAv.innerHTML = `<img src="${u.avatar}" class="av-img" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-    } else {
-      sbAv.style.background = Utils.getAvatarColor(ME.username);
-      sbAv.textContent = Utils.getInitials(ME.username);
-    }
+    Storage.getUserByUsernameAsync(ME.username).then(u => {
+      if (u && u.avatar) {
+        sbAv.style.background = 'none';
+        sbAv.innerHTML = `<img src="${u.avatar}" class="av-img" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+      } else {
+        sbAv.style.background = Utils.getAvatarColor(ME.username);
+        sbAv.textContent = Utils.getInitials(ME.username);
+      }
+    });
   }
   const sbName = document.getElementById('sb-name');
   const sbHandle = document.getElementById('sb-handle');
@@ -94,32 +95,36 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderRight() {
     const tl = document.getElementById('trending-list');
     if (tl) {
-      const trending = Storage.getTrendingRants();
-      tl.innerHTML = trending.length
-        ? trending.map(r => `
-            <div class="trend-item" data-id="${r.id}" style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer">
-              <div style="font-weight:600;font-size:13px">@${Utils.escapeHtml(r.anonymous ? 'Anonymous' : r.username)}</div>
-              <div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${Utils.escapeHtml(r.content)}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px">❤️ ${(r.likes || []).length}</div>
-            </div>`).join('')
-        : '<p style="font-size:13px;color:var(--text3)">No trending rants yet.</p>';
+      tl.innerHTML = '<p style="font-size:13px;color:var(--text3)">Loading…</p>';
+      Storage.getTrendingRantsAsync().then(trending => {
+        tl.innerHTML = (trending && trending.length)
+          ? trending.map(r => `
+              <div class="trend-item" data-id="${r.rant_ID}" style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer">
+                <div style="font-weight:600;font-size:13px">@${Utils.escapeHtml(r.anonymous ? 'Anonymous' : r.username)}</div>
+                <div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${Utils.escapeHtml(r.content)}</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px">❤️ ${(r.likes || []).length}</div>
+              </div>`).join('')
+          : '<p style="font-size:13px;color:var(--text3)">No trending rants yet.</p>';
+      });
     }
     const sl = document.getElementById('suggested-list');
     if (sl) {
-      const suggested = Storage.getSuggestedUsers(ME.username);
-      sl.innerHTML = suggested.length
-        ? suggested.map(u => `
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-              <div class="av sm go-av" style="background:${Utils.getAvatarColor(u.username)};cursor:pointer" data-go="${u.username}">${Utils.getInitials(u.username)}</div>
-              <div style="flex:1;min-width:0">
-                <div style="font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="go-profile" data-go="${u.username}">@${Utils.escapeHtml(u.username)}</div>
-                ${u.mutuals ? `<div style="font-size:11px;color:var(--text3)">${u.mutuals} mutual</div>` : ''}
-              </div>
-              <button class="btn btn-ghost btn-xs msg-btn" data-to="${u.username}">Message</button>
-            </div>`).join('')
-        : '<p style="font-size:13px;color:var(--text3)">No suggestions.</p>';
-      sl.querySelectorAll('.go-profile,.go-av').forEach(el => el.addEventListener('click', () => render('userprofile', { username: el.dataset.go })));
-      sl.querySelectorAll('.msg-btn').forEach(btn => btn.addEventListener('click', () => navigate_msg(btn.dataset.to)));
+      sl.innerHTML = '<p style="font-size:13px;color:var(--text3)">Loading…</p>';
+      Storage.getSuggestedUsersAsync().then(suggested => {
+        sl.innerHTML = (suggested && suggested.length)
+          ? suggested.map(u => `
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+                <div class="av sm go-av" style="background:${Utils.getAvatarColor(u.username)};cursor:pointer" data-go="${u.username}">${Utils.getInitials(u.username)}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="go-profile" data-go="${u.username}">@${Utils.escapeHtml(u.username)}</div>
+                  ${u.mutuals ? `<div style="font-size:11px;color:var(--text3)">${u.mutuals} mutual</div>` : ''}
+                </div>
+                <button class="btn btn-ghost btn-xs msg-btn" data-to="${u.username}">Message</button>
+              </div>`).join('')
+          : '<p style="font-size:13px;color:var(--text3)">No suggestions.</p>';
+        sl.querySelectorAll('.go-profile,.go-av').forEach(el => el.addEventListener('click', () => render('userprofile', { username: el.dataset.go })));
+        sl.querySelectorAll('.msg-btn').forEach(btn => btn.addEventListener('click', () => navigate_msg(btn.dataset.to)));
+      });
     }
   }
   renderRight();
@@ -181,11 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const homeAv = c.querySelector('#home-av');
     const circ = 75.4;
 
-    const uData = Storage.getUserByUsername(ME.username);
-    if (uData && uData.avatar) {
-      homeAv.style.background = 'none';
-      homeAv.innerHTML = `<img src="${uData.avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover"/>`;
-    }
+    Storage.getUserByUsernameAsync(ME.username).then(uData => {
+      if (uData && uData.avatar) {
+        homeAv.style.background = 'none';
+        homeAv.innerHTML = `<img src="${uData.avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover"/>`;
+      }
+    });
 
     anonChk.addEventListener('change', () => {
       isAnon = anonChk.checked;
@@ -256,12 +262,21 @@ document.addEventListener('DOMContentLoaded', () => {
           rants = rants.filter(r => !blocked.includes(r.username));
           if (q) rants = rants.filter(r => r.content.toLowerCase().includes(q.toLowerCase()) || (!r.anonymous && r.username.toLowerCase().includes(q.toLowerCase())));
           if (activeTab === 'following') {
-            const following = Storage.getFollowing(ME.username) || [];
-            rants = rants.filter(r => following.includes(r.username) || r.user_ID === ME.user_ID);
+            Storage.getFollowingAsync(ME.username).then(following => {
+              following = following || [];
+              const filtered = rants.filter(r => following.includes(r.username) || r.user_ID === ME.user_ID);
+              feedEl.innerHTML = '';
+              if (!filtered.length) {
+                feedEl.innerHTML = `<div class="empty"><div class="e-icon">💬</div><p>Follow someone to see their rants!</p></div>`;
+                return;
+              }
+              filtered.forEach(r => feedEl.appendChild(buildCard(r)));
+            });
+            return;
           }
           feedEl.innerHTML = '';
           if (!rants.length) {
-            feedEl.innerHTML = `<div class="empty"><div class="e-icon">💬</div><p>${activeTab === 'following' ? 'Follow someone to see their rants!' : q ? 'No results.' : 'No rants yet!'}</p></div>`;
+            feedEl.innerHTML = `<div class="empty"><div class="e-icon">💬</div><p>${q ? 'No results.' : 'No rants yet!'}</p></div>`;
             return;
           }
           rants.forEach(r => feedEl.appendChild(buildCard(r)));
@@ -276,15 +291,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // EXPLORE
   // ════════════════════════════════════════
   function renderExplore(c) {
-    const trending = Storage.getTrendingRants();
-    const blocked = Storage.getBlockedUsers(ME.username);
     c.innerHTML = `<div class="page-hdr"><h2>Explore</h2></div>
       <div style="padding:12px 20px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text3)">Top rants in the last 24 hours</div>
-      <div id="explore-feed"></div>`;
+      <div id="explore-feed"><div style="text-align:center;padding:20px;color:var(--text3)">Loading…</div></div>`;
     const ef = c.querySelector('#explore-feed');
-    const visible = trending.filter(r => !blocked.includes(r.username));
-    if (!visible.length) { ef.innerHTML = `<div class="empty"><div class="e-icon">🔥</div><p>Nothing trending yet.</p></div>`; return; }
-    visible.forEach(r => ef.appendChild(buildCard(r)));
+    Storage.getTrendingRantsAsync().then(trending => {
+      const blocked = Storage.getBlockedUsers(ME.username);
+      const visible = (trending || []).filter(r => !blocked.includes(r.username));
+      ef.innerHTML = '';
+      if (!visible.length) { ef.innerHTML = `<div class="empty"><div class="e-icon">🔥</div><p>Nothing trending yet.</p></div>`; return; }
+      visible.forEach(r => ef.appendChild(buildCard(r)));
+    });
   }
 
   // ════════════════════════════════════════
@@ -310,7 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeTab = 'all';
     const inp = c.querySelector('#s-input');
     const res = c.querySelector('#s-results');
-    const blocked = Storage.getBlockedUsers(ME.username);
 
     c.querySelectorAll('.tab[data-stab]').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -322,12 +338,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inp.addEventListener('input', () => doSearch(inp.value.trim()));
 
-    function doSearch(q) {
+    async function doSearch(q) {
       res.innerHTML = '';
       if (!q) return;
       const ql = q.toLowerCase();
-      const users = Storage.getUsers().filter(u => u.role !== 'admin' && !blocked.includes(u.username) && u.username.toLowerCase().includes(ql));
-      let rants = Storage.getRants().filter(r => !blocked.includes(r.username) && (r.content.toLowerCase().includes(ql) || (!r.anonymous && r.username.toLowerCase().includes(ql))));
+      const blocked = Storage.getBlockedUsers(ME.username);
+      const [allUsers, allRants] = await Promise.all([
+        Storage.getUsersAsync(),
+        Storage.getRantsAsync()
+      ]);
+      const users = (allUsers || []).filter(u => u.role !== 'admin' && !blocked.includes(u.username) && u.username.toLowerCase().includes(ql));
+      let rants = (allRants || []).filter(r => !blocked.includes(r.username) && (r.content.toLowerCase().includes(ql) || (!r.anonymous && r.username.toLowerCase().includes(ql))));
       const topRants = [...rants].sort((a, b) => (b.likes || []).length - (a.likes || []).length);
 
       if ((activeTab === 'all' || activeTab === 'people') && users.length) {
@@ -355,31 +376,37 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderNotifications(c) {
     Storage.markNotificationsRead(ME.username);
     refreshBadges();
-    const notifs = Storage.getNotifications(ME.username);
-    c.innerHTML = `
-      <div class="page-hdr">
-        <h2>Notifications</h2>
-        ${notifs.length ? `<button class="btn btn-ghost btn-sm" id="clear-notifs" style="margin-left:auto">Clear all</button>` : ''}
-      </div>`;
-    if (!notifs.length) { c.innerHTML += `<div class="empty"><div class="e-icon">🔔</div><p>Nothing here yet.</p></div>`; return; }
+    c.innerHTML = `<div class="page-hdr"><h2>Notifications</h2></div>
+      <div class="empty"><div class="e-icon">🔔</div><p>Loading…</p></div>`;
 
-    const clearBtn = c.querySelector('#clear-notifs');
-    if (clearBtn) clearBtn.addEventListener('click', () => { Storage.clearNotifications(ME.username); renderNotifications(c); });
-
-    notifs.forEach(n => {
-      const icon = n.type === 'like' ? '❤️' : n.type === 'comment' ? '💬' : n.type === 'follow' ? '👤' : n.type === 'repost' ? '🔁' : '📢';
-      const names = n.froms.length === 1 ? `@${Utils.escapeHtml(n.froms[0])}` :
-        n.froms.length === 2 ? `@${Utils.escapeHtml(n.froms[0])} and @${Utils.escapeHtml(n.froms[1])}` :
-          `@${Utils.escapeHtml(n.froms[0])} and ${n.froms.length - 1} others`;
-      const el = document.createElement('div');
-      el.className = 'notif-item' + (n.read ? '' : ' unread');
-      el.innerHTML = `<div class="notif-icon">${icon}</div>
-        <div>
-          <div class="notif-text"><strong>${names}</strong> ${Utils.escapeHtml(n.message)}</div>
-          <div class="notif-time">${Utils.timeAgo(n.createdAt)}</div>
+    Storage.getNotificationsAsync(ME.username).then(notifs => {
+      notifs = notifs || [];
+      c.innerHTML = `
+        <div class="page-hdr">
+          <h2>Notifications</h2>
+          ${notifs.length ? `<button class="btn btn-ghost btn-sm" id="clear-notifs" style="margin-left:auto">Clear all</button>` : ''}
         </div>`;
-      el.addEventListener('click', () => { if (n.froms[0]) render('userprofile', { username: n.froms[0] }); });
-      c.appendChild(el);
+      if (!notifs.length) { c.innerHTML += `<div class="empty"><div class="e-icon">🔔</div><p>Nothing here yet.</p></div>`; return; }
+
+      const clearBtn = c.querySelector('#clear-notifs');
+      if (clearBtn) clearBtn.addEventListener('click', () => { Storage.clearNotifications(ME.username); renderNotifications(c); });
+
+      notifs.forEach(n => {
+        const icon = n.type === 'like' ? '❤️' : n.type === 'comment' ? '💬' : n.type === 'follow' ? '👤' : n.type === 'repost' ? '🔁' : n.type === 'reaction' ? '😊' : '📢';
+        const froms = n.froms || [n.from_user];
+        const names = froms.length === 1 ? `@${Utils.escapeHtml(froms[0])}` :
+          froms.length === 2 ? `@${Utils.escapeHtml(froms[0])} and @${Utils.escapeHtml(froms[1])}` :
+            `@${Utils.escapeHtml(froms[0])} and ${froms.length - 1} others`;
+        const el = document.createElement('div');
+        el.className = 'notif-item' + (n.read ? '' : ' unread');
+        el.innerHTML = `<div class="notif-icon">${icon}</div>
+          <div>
+            <div class="notif-text"><strong>${names}</strong> ${Utils.escapeHtml(n.message || '')}</div>
+            <div class="notif-time">${Utils.timeAgo(n.created_at)}</div>
+          </div>`;
+        el.addEventListener('click', () => { if (froms[0]) render('userprofile', { username: froms[0] }); });
+        c.appendChild(el);
+      });
     });
   }
 
@@ -387,12 +414,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // MESSAGES
   // ════════════════════════════════════════
   function renderMessages(c, openWith) {
-    const inboxUsers = Storage.getInboxUsers(ME.username);
+  c.innerHTML = `<div class="page-hdr"><h2>Messages</h2></div>
+    <div style="text-align:center;padding:20px;color:var(--text3)">Loading…</div>`;
+
+  Storage.getInboxUsersAsync().then(inboxUsers => {
+    inboxUsers = inboxUsers || [];
     if (openWith && !inboxUsers.includes(openWith)) inboxUsers.unshift(openWith);
     c.innerHTML = `<div class="page-hdr"><h2>Messages</h2></div>`;
     if (!inboxUsers.length && !openWith) {
       c.innerHTML += `<div class="empty"><div class="e-icon">💬</div><p>No conversations yet.</p></div>`; return;
     }
+
     const layout = document.createElement('div');
     layout.style.cssText = 'display:flex;height:calc(100vh - 57px)';
     const list = document.createElement('div');
@@ -400,95 +432,190 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatArea = document.createElement('div');
     chatArea.style.cssText = 'flex:1;display:flex;flex-direction:column;min-width:0';
 
-    inboxUsers.forEach(u => {
-      const last = Storage.getLastMessage(ME.username, u);
-      const unread = Storage.getConversation(ME.username, u).filter(m => m.to === ME.username && !m.read).length;
+    function buildInboxItem(u) {
       const item = document.createElement('div');
       item.className = 'inbox-item'; item.dataset.user = u;
-      item.innerHTML = `<div class="av sm" style="background:${Utils.getAvatarColor(u)}">${Utils.getInitials(u)}</div>
+      item.innerHTML = `
+        <div class="av sm" style="background:${Utils.getAvatarColor(u)}">${Utils.getInitials(u)}</div>
         <div class="inbox-info">
           <div class="inbox-name">@${Utils.escapeHtml(u)}</div>
-          <div class="inbox-preview">${last ? Utils.escapeHtml(last.text) : 'Say hi!'}</div>
-        </div>
-        ${unread ? `<span class="inbox-unread">${unread}</span>` : ''}`;
-      item.addEventListener('click', () => { openChat(u); list.querySelectorAll('.inbox-item').forEach(i => i.classList.toggle('active', i.dataset.user === u)); });
-      list.appendChild(item);
-    });
+          <div class="inbox-preview" style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Say hi!</div>
+        </div>`;
+      Storage.getLastMessageAsync(u).then(last => {
+        const preview = item.querySelector('.inbox-preview');
+        if (preview && last) preview.textContent = last.msg_text || 'Say hi!';
+      });
+      item.addEventListener('click', () => {
+        list.querySelectorAll('.inbox-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        openChat(u);
+      });
+      return item;
+    }
 
-    layout.appendChild(list); layout.appendChild(chatArea);
+    inboxUsers.forEach(u => list.appendChild(buildInboxItem(u)));
+    layout.appendChild(list);
+    layout.appendChild(chatArea);
     c.appendChild(layout);
 
     function openChat(toUser) {
-      Storage.markMessagesRead(toUser, ME.username); refreshBadges();
+      // Mark messages read
+      fetch('storage_api.php', {
+        method: 'POST',
+        body: (() => { const fd = new FormData(); fd.append('action','mark_messages_read'); fd.append('from', toUser); return fd; })()
+      });
+      refreshBadges();
+
       chatArea.innerHTML = `
-        <div class="page-hdr" style="position:relative;top:0">
+        <div class="page-hdr" style="border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px">
           <div class="av sm" style="background:${Utils.getAvatarColor(toUser)}">${Utils.getInitials(toUser)}</div>
-          <h2 style="font-size:16px">@${Utils.escapeHtml(toUser)}</h2>
+          <h2 style="font-size:16px;margin:0">@${Utils.escapeHtml(toUser)}</h2>
           <button class="btn btn-ghost btn-xs" style="margin-left:auto" id="view-prof-btn">View Profile</button>
         </div>
-        <div class="chat-messages" id="chat-msgs"></div>
-        <div class="chat-input-row">
-          <input id="chat-in" type="text" placeholder="Message @${Utils.escapeHtml(toUser)}…" maxlength="500"/>
+        <div class="chat-messages" id="chat-msgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px"></div>
+        <div class="chat-input-row" style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px">
+          <input id="chat-in" type="text" placeholder="Message @${Utils.escapeHtml(toUser)}…" maxlength="500" style="flex:1"/>
           <button class="btn btn-primary btn-sm" id="chat-send">Send</button>
         </div>`;
+
       chatArea.querySelector('#view-prof-btn').addEventListener('click', () => render('userprofile', { username: toUser }));
 
       function loadMsgs() {
-        const msgs = Storage.getConversation(ME.username, toUser);
         const box = chatArea.querySelector('#chat-msgs');
-        box.innerHTML = '';
-        if (!msgs.length) { box.innerHTML = `<div class="empty" style="padding:40px 20px"><p>Start the conversation!</p></div>`; return; }
-        msgs.forEach((m, i) => {
-          const mine = m.from === ME.username;
-          const row = document.createElement('div'); row.className = 'chat-bubble-row ' + (mine ? 'mine' : 'other');
-          if (!mine) { const av = Utils.avatar(toUser, 'xs'); row.appendChild(av); }
-          const bubble = document.createElement('div'); bubble.className = 'chat-bubble';
-          bubble.textContent = m.text; row.appendChild(bubble);
-          if (mine && i === msgs.length - 1 && m.read) {
-            const seen = document.createElement('div'); seen.className = 'seen-tag'; seen.textContent = 'Seen';
-            const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end';
-            wrap.appendChild(bubble); wrap.appendChild(seen); row.appendChild(wrap);
-          }
-          box.appendChild(row);
-        });
-        box.scrollTop = box.scrollHeight;
+        // fetch conversation directly via API
+        fetch(`storage_api.php?action=get_conversation&with=${encodeURIComponent(toUser)}`)
+          .then(r => r.json())
+          .then(msgs => {
+            if (!Array.isArray(msgs)) msgs = [];
+            box.innerHTML = '';
+            if (!msgs.length) {
+              box.innerHTML = `<div class="empty" style="padding:40px 20px;text-align:center"><p>Start the conversation! 👋</p></div>`;
+              return;
+            }
+            msgs.forEach((m, i) => {
+              const mine = m.from_user === ME.username;
+              const wrapper = document.createElement('div');
+              wrapper.style.cssText = `display:flex;flex-direction:column;align-items:${mine ? 'flex-end' : 'flex-start'}`;
+
+              const row = document.createElement('div');
+              row.style.cssText = `display:flex;align-items:flex-end;gap:6px;${mine ? 'flex-direction:row-reverse' : ''}`;
+
+              if (!mine) {
+                const av = document.createElement('div');
+                av.className = 'av xs';
+                av.style.background = Utils.getAvatarColor(toUser);
+                av.textContent = Utils.getInitials(toUser);
+                row.appendChild(av);
+              }
+
+              const bubble = document.createElement('div');
+              bubble.className = 'chat-bubble' + (mine ? ' mine' : '');
+              bubble.textContent = m.msg_text;
+              bubble.style.cssText = `
+                max-width:320px;padding:8px 12px;border-radius:${mine ? '18px 18px 4px 18px' : '18px 18px 18px 4px'};
+                background:${mine ? 'var(--accent)' : 'var(--surface2)'};
+                color:${mine ? 'white' : 'var(--text1)'};
+                font-size:14px;line-height:1.4;word-break:break-word`;
+              row.appendChild(bubble);
+              wrapper.appendChild(row);
+
+              // timestamp
+              const ts = document.createElement('div');
+              ts.style.cssText = 'font-size:11px;color:var(--text3);margin-top:2px;padding:0 4px';
+              ts.textContent = Utils.timeAgo(m.created_at);
+              wrapper.appendChild(ts);
+
+              // seen indicator on last mine msg
+              if (mine && i === msgs.length - 1 && m.is_read) {
+                const seen = document.createElement('div');
+                seen.style.cssText = 'font-size:11px;color:var(--text3);padding:0 4px';
+                seen.textContent = '✓ Seen';
+                wrapper.appendChild(seen);
+              }
+
+              box.appendChild(wrapper);
+            });
+            box.scrollTop = box.scrollHeight;
+          })
+          .catch(() => {
+            box.innerHTML = `<div class="empty"><p>Failed to load messages.</p></div>`;
+          });
       }
+
       loadMsgs();
 
       const chatIn = chatArea.querySelector('#chat-in');
       const chatSend = chatArea.querySelector('#chat-send');
+
       function sendMsg() {
-        const text = chatIn.value.trim(); if (!text) return;
-        Storage.sendMessage({ id: Date.now().toString(36), from: ME.username, to: toUser, text, createdAt: new Date().toISOString(), read: false });
-        chatIn.value = ''; loadMsgs();
-        Storage.addNotification({ to: toUser, from: ME.username, type: 'message', message: 'sent you a message.' });
-        refreshBadges();
+        const text = chatIn.value.trim();
+        if (!text) return;
+        chatSend.disabled = true;
+        chatIn.value = '';
+
+        const fd = new FormData();
+        fd.append('action', 'send_message');
+        fd.append('to', toUser);
+        fd.append('text', text);
+
+        fetch('storage_api.php', { method: 'POST', body: fd })
+          .then(r => r.json())
+          .then(data => {
+            chatSend.disabled = false;
+            if (data.success) {
+              loadMsgs();
+              // update inbox preview
+              const preview = list.querySelector(`[data-user="${toUser}"] .inbox-preview`);
+              if (preview) preview.textContent = text;
+              // add to inbox list if new conversation
+              if (!list.querySelector(`[data-user="${toUser}"]`)) {
+                list.prepend(buildInboxItem(toUser));
+              }
+              // send notification
+              Storage.addNotification({ to: toUser, from: ME.username, type: 'message', message: 'sent you a message.' });
+              refreshBadges();
+            } else {
+              Utils.showToast('Failed to send message', 'error');
+              chatIn.value = text; // restore
+            }
+          })
+          .catch(() => {
+            chatSend.disabled = false;
+            Utils.showToast('Network error', 'error');
+            chatIn.value = text;
+          });
       }
+
       chatSend.addEventListener('click', sendMsg);
       chatIn.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+      chatIn.focus();
     }
 
-    if (openWith) { const item = list.querySelector(`[data-user="${openWith}"]`); if (item) { item.classList.add('active'); openChat(openWith); } else openChat(openWith); }
-    else if (inboxUsers.length) { const first = list.querySelector('.inbox-item'); if (first) { first.classList.add('active'); openChat(first.dataset.user); } }
-  }
+    if (openWith) {
+      const item = list.querySelector(`[data-user="${openWith}"]`);
+      if (item) item.classList.add('active');
+      openChat(openWith);
+    } else if (inboxUsers.length) {
+      const first = list.querySelector('.inbox-item');
+      if (first) { first.classList.add('active'); openChat(first.dataset.user); }
+    } else {
+      // No conversations yet — show empty state with hint
+      chatArea.innerHTML = `
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3)">
+          <div style="font-size:48px">💬</div>
+          <div style="font-size:16px;font-weight:600;color:var(--text2)">No messages yet</div>
+          <div style="font-size:13px;text-align:center;max-width:240px">Go to someone's profile and click <strong>Message</strong> to start a conversation.</div>
+        </div>`;
+    }
+  });
+}
 
   // ════════════════════════════════════════
   // PROFILE
   // ════════════════════════════════════════
   function renderProfile(c, username) {
     const isMe = username === ME.username;
-    const user = Storage.getUserByUsername(username);
-    const rants = Storage.getRantsByUser(username);
     const color = Utils.getAvatarColor(username);
-    const followers = Storage.getFollowers(username);
-    const following = Storage.getFollowing(username);
-    const amFollowing = Storage.isFollowing(ME.username, username);
-    const amBlocked = Storage.isBlocked(ME.username, username);
-    const blocked = Storage.getBlockedUsers(ME.username);
-
-    const avHTML = user && user.avatar
-      ? `<img src="${user.avatar}" class="av-img" style="width:64px;height:64px;border:4px solid var(--bg);box-shadow:0 0 0 1px var(--border2);cursor:${isMe ? 'pointer' : 'default'}">`
-      : `<div class="av lg profile-av-ring" style="background:${color};cursor:${isMe ? 'pointer' : 'default'}">${Utils.getInitials(username)}</div>`;
 
     c.innerHTML = `
       ${!isMe ? `<div class="page-hdr"><button class="back-btn" id="back-btn">←</button><h2>@${Utils.escapeHtml(username)}</h2></div>` : '<div class="page-hdr"><h2>Profile</h2></div>'}
@@ -510,89 +637,206 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="profile-info-wrap">
         <div class="profile-av-row">
           <div class="av-upload-wrap" id="av-wrap">
-            ${avHTML}
-            ${isMe ? `<label class="av-upload-overlay" for="av-input" title="Change photo">📷</label><input type="file" id="av-input" accept="image/*"/>` : ``}
+            <div class="av lg profile-av-ring" id="profile-av" style="background:${color}">${Utils.getInitials(username)}</div>
+            ${isMe ? `<label class="av-upload-overlay" for="av-input" title="Change photo">📷</label><input type="file" id="av-input" accept="image/*"/>` : ''}
           </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            ${isMe
-        ? `<button class="btn btn-ghost btn-sm" id="edit-profile-btn">Edit profile</button>`
-        : amBlocked
-          ? `<button class="btn btn-ghost btn-sm" id="unblock-btn">Unblock</button>`
-          : `<button class="btn btn-ghost btn-sm" id="msg-user-btn">Message</button>
-                   <button class="btn-follow ${amFollowing ? 'following' : ''}" id="follow-btn">${amFollowing ? 'Following' : 'Follow'}</button>
-                   <button class="btn btn-ghost btn-sm" id="block-btn" title="Block user" style="color:var(--danger)">🚫</button>`
-      }
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" id="profile-actions">
+            ${isMe ? `<button class="btn btn-ghost btn-sm" id="edit-profile-btn">Edit profile</button>` : `
+              <button class="btn btn-ghost btn-sm" id="msg-user-btn">Message</button>
+              <button class="btn-follow" id="follow-btn">Follow</button>
+              <button class="btn btn-ghost btn-sm" id="block-btn" style="color:var(--danger)">🚫</button>`}
           </div>
         </div>
         <div class="profile-uname">${Utils.escapeHtml(username)}</div>
         <div class="profile-handle-text">@${Utils.escapeHtml(username)}</div>
-        <div class="profile-bio">${Utils.escapeHtml(user?.bio || 'No bio yet.')}</div>
-        <div class="profile-meta"><span>📅 Joined ${user ? new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long' }) : ''}</span></div>
+        <div class="profile-bio" id="profile-bio">No bio yet.</div>
+        <div class="profile-meta"><span id="profile-joined">📅 Joined</span></div>
         <div class="follow-stats">
-          <div class="follow-stat" id="show-following"><strong>${following.length}</strong> <span>Following</span></div>
-          <div class="follow-stat" id="show-followers"><strong>${followers.length}</strong> <span>Followers</span></div>
-          <div class="profile-stat"><strong>${rants.length}</strong> <span>rants</span></div>
+          <div class="follow-stat" id="show-following"><strong id="following-count">0</strong> <span>Following</span></div>
+          <div class="follow-stat" id="show-followers"><strong id="followers-count">0</strong> <span>Followers</span></div>
+          <div class="profile-stat"><strong id="rants-count">0</strong> <span>rants</span></div>
         </div>
       </div>
-      <div class="tabs"><button class="tab active">Rants</button></div>
-      <div id="p-feed"></div>`;
+      <div class="tabs">
+  <button class="tab active" data-ptab="rants">Rants</button>
+  ${isMe ? `<button class="tab" data-ptab="archived">🗃️ Archived</button>` : ''}
+</div>
+<div id="p-feed"><div style="text-align:center;padding:20px;color:var(--text3)">Loading…</div></div>`;
+
+    // Back button
+    if (!isMe) {
+      c.querySelector('#back-btn').addEventListener('click', () => navigate('home'));
+    }
+
+    // Load all profile data async in parallel
+    Promise.all([
+  Storage.getUserByUsernameAsync(username),
+  Storage.getFollowersAsync(username),
+  Storage.getFollowingAsync(username),
+  fetch('storage_api.php?action=get_blocked').then(r=>r.json()).catch(()=>[]),
+  !isMe ? Storage.getFollowingAsync(ME.username) : Promise.resolve([]),
+]).then(([user, followers, following, blocked, myFollowing]) => {
+      const blockCheck = { blocked: (blocked||[]).includes(username) };
+
+      // Update avatar
+      const avEl = c.querySelector('#profile-av');
+      if (user && user.avatar && avEl) {
+        avEl.outerHTML = `<img src="${user.avatar}" class="av-img" style="width:64px;height:64px;border:4px solid var(--bg);border-radius:50%;object-fit:cover;cursor:${isMe?'pointer':'default'}">`;
+      }
+      if (user?.cover) {
+    const coverEl = c.querySelector('.profile-cover');
+    if (coverEl) coverEl.innerHTML = `<img src="${user.cover}" style="width:100%;height:160px;object-fit:cover;display:block"/>`;
+      }
+
+      // Update bio & joined
+      c.querySelector('#profile-bio').textContent = user?.bio || 'No bio yet.';
+      if (user?.created_at) {
+        c.querySelector('#profile-joined').textContent = '📅 Joined ' + new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
+      }
+
+      // Update counts
+      c.querySelector('#following-count').textContent = following.length;
+      c.querySelector('#followers-count').textContent = followers.length;
+      
+
+      // Follow button state
+      if (!isMe) {
+        const amFollowing = (myFollowing || []).includes(username);
+        const amBlocked = blockCheck?.blocked || false;
+        const actionsEl = c.querySelector('#profile-actions');
+
+        if (amBlocked) {
+          actionsEl.innerHTML = `<button class="btn btn-ghost btn-sm" id="unblock-btn">Unblock</button>`;
+          actionsEl.querySelector('#unblock-btn').addEventListener('click', () => {
+            Storage.unblockUser(ME.username, username);
+            Utils.showToast(`@${username} unblocked.`, 'success');
+            renderProfile(c, username);
+          });
+        } else {
+          const followBtn = c.querySelector('#follow-btn');
+          if (followBtn) {
+            followBtn.textContent = amFollowing ? 'Following' : 'Follow';
+            followBtn.classList.toggle('following', amFollowing);
+            followBtn.addEventListener('click', () => {
+              const nowF = Storage.toggleFollow(ME.username, username);
+              followBtn.textContent = nowF ? 'Following' : 'Follow';
+              followBtn.classList.toggle('following', nowF);
+              const fc = c.querySelector('#followers-count');
+              if (fc) fc.textContent = parseInt(fc.textContent) + (nowF ? 1 : -1);
+              if (nowF) { Storage.addNotification({ to: username, from: ME.username, type: 'follow', message: 'started following you.', rantId: null }); Utils.showToast(`Following @${username}`, 'success'); }
+              else Utils.showToast(`Unfollowed @${username}`, 'info');
+              refreshBadges();
+            });
+          }
+          const msgBtn = c.querySelector('#msg-user-btn');
+          if (msgBtn) msgBtn.addEventListener('click', () => navigate_msg(username));
+          const blockBtn = c.querySelector('#block-btn');
+          if (blockBtn) blockBtn.addEventListener('click', () => {
+            if (!confirm(`Block @${username}?`)) return;
+            Storage.blockUser(ME.username, username);
+            Utils.showToast(`@${username} blocked.`, 'info');
+            renderProfile(c, username);
+          });
+        }
+      } else {
+        // Avatar upload
+        const avInput = c.querySelector('#av-input');
+        if (avInput) avInput.addEventListener('change', () => {
+          const file = avInput.files[0]; if (!file) return;
+          const reader = new FileReader();
+          reader.onload = e => { Storage.updateUser(ME.username, { avatar: e.target.result }); Utils.showToast('Profile photo updated!', 'success'); renderProfile(c, username); };
+          reader.readAsDataURL(file);
+        });
+        c.querySelector('#edit-profile-btn').addEventListener('click', () => openEditProfile());
+      }
+
+      // Follow/following modals
+      c.querySelector('#show-followers').addEventListener('click', () => openFollowModal('Followers', followers));
+      c.querySelector('#show-following').addEventListener('click', () => openFollowModal('Following', following));
+
+      // Render rants
+      const pf = c.querySelector('#p-feed');
+
+      function loadProfileRants() {
+          pf.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Loading…</div>';
+          fetch('api/get_rants.php')
+              .then(r => r.json())
+              .then(allRants => {
+                  if (!Array.isArray(allRants)) allRants = [];
+                  const userRants = allRants.filter(r =>
+                      r.username === username && !(blocked || []).includes(r.username)
+                  );
+                  c.querySelector('#rants-count').textContent = userRants.length;
+                  pf.innerHTML = '';
+                  if (!userRants.length) {
+                      pf.innerHTML = `<div class="empty"><div class="e-icon">🤐</div><p>No rants yet.</p></div>`;
+                      return;
+                  }
+                  userRants.forEach(r => pf.appendChild(buildCard(r, !isMe)));
+              })
+              .catch(() => {
+                  pf.innerHTML = `<div class="empty"><div class="e-icon">⚠️</div><p>Error loading rants.</p></div>`;
+              });
+      }
+
+      function loadArchivedRants() {
+          pf.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Loading…</div>';
+          fetch('storage_api.php?action=get_archived_rants')
+              .then(r => r.json())
+              .then(rants => {
+                  if (!Array.isArray(rants)) rants = [];
+                  pf.innerHTML = '';
+                  if (!rants.length) {
+                      pf.innerHTML = `<div class="empty"><div class="e-icon">🗃️</div><p>No archived rants.</p></div>`;
+                      return;
+                  }
+                  rants.forEach(r => {
+                      const card = buildCard(r, false);
+                      const actions = card.querySelector('.post-actions');
+                      if (actions) {
+                          const unBtn = document.createElement('button');
+                          unBtn.className = 'action-btn';
+                          unBtn.title = 'Unarchive';
+                          unBtn.innerHTML = '<span class="a-icon">📤</span>';
+                          unBtn.addEventListener('click', () => {
+                              const fd = new FormData();
+                              fd.append('action', 'unarchive_rant');
+                              fd.append('rant_id', r.rant_ID || r.id);
+                              fetch('storage_api.php', { method: 'POST', body: fd })
+                                  .then(res => res.json())
+                                  .then(data => {
+                                      if (data.success) { card.remove(); Utils.showToast('Rant unarchived!', 'success'); }
+                                      else Utils.showToast('Failed to unarchive', 'error');
+                                  });
+                          });
+                          actions.appendChild(unBtn);
+                      }
+                      pf.appendChild(card);
+                  });
+              })
+              .catch(() => {
+                  pf.innerHTML = `<div class="empty"><div class="e-icon">⚠️</div><p>Error loading archived rants.</p></div>`;
+              });
+      }
+
+      c.querySelectorAll('.tab[data-ptab]').forEach(tab => {
+          tab.addEventListener('click', () => {
+              c.querySelectorAll('.tab[data-ptab]').forEach(t => t.classList.remove('active'));
+              tab.classList.add('active');
+              if (tab.dataset.ptab === 'rants') loadProfileRants();
+              else loadArchivedRants();
+          });
+      });
+
+      loadProfileRants();
+    });
 
     if (isMe) {
-      const avInput = c.querySelector('#av-input');
-      if (avInput) avInput.addEventListener('change', () => {
-        const file = avInput.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => { Storage.updateUser(ME.username, { avatar: e.target.result }); Utils.showToast('Profile photo updated!', 'success'); render('profile'); };
-        reader.readAsDataURL(file);
-      });
+      setTimeout(() => {
+        const epBtn = c.querySelector('#edit-profile-btn');
+        if (epBtn) epBtn.addEventListener('click', () => openEditProfile());
+      }, 100);
     }
-
-    if (!isMe) {
-      const backBtn = c.querySelector('#back-btn');
-      if (backBtn) backBtn.addEventListener('click', () => navigate('home'));
-
-      if (!amBlocked) {
-        const msgBtn = c.querySelector('#msg-user-btn');
-        if (msgBtn) msgBtn.addEventListener('click', () => navigate_msg(username));
-
-        const followBtn = c.querySelector('#follow-btn');
-        if (followBtn) followBtn.addEventListener('click', () => {
-          const nowF = Storage.toggleFollow(ME.username, username);
-          followBtn.textContent = nowF ? 'Following' : 'Follow';
-          followBtn.classList.toggle('following', nowF);
-          if (nowF) { Storage.addNotification({ to: username, from: ME.username, type: 'follow', message: 'started following you.', rantId: null }); Utils.showToast(`Following @${username}`, 'success'); }
-          else Utils.showToast(`Unfollowed @${username}`, 'info');
-          refreshBadges();
-          const fs = c.querySelector('#show-followers strong');
-          if (fs) fs.textContent = Storage.getFollowers(username).length;
-        });
-
-        const blockBtn = c.querySelector('#block-btn');
-        if (blockBtn) blockBtn.addEventListener('click', () => {
-          if (!confirm(`Block @${username}? They won't be able to see your profile or message you.`)) return;
-          Storage.blockUser(ME.username, username);
-          Utils.showToast(`@${username} blocked.`, 'info');
-          render('userprofile', { username });
-        });
-      } else {
-        const unblockBtn = c.querySelector('#unblock-btn');
-        if (unblockBtn) unblockBtn.addEventListener('click', () => {
-          Storage.unblockUser(ME.username, username);
-          Utils.showToast(`@${username} unblocked.`, 'success');
-          render('userprofile', { username });
-        });
-      }
-    } else {
-      c.querySelector('#edit-profile-btn').addEventListener('click', () => openEditProfile());
-    }
-
-    c.querySelector('#show-followers').addEventListener('click', () => openFollowModal('Followers', Storage.getFollowers(username)));
-    c.querySelector('#show-following').addEventListener('click', () => openFollowModal('Following', Storage.getFollowing(username)));
-
-    const pf = c.querySelector('#p-feed');
-    const visibleRants = rants.filter(r => !blocked.includes(r.username));
-    if (!visibleRants.length) { pf.innerHTML = `<div class="empty"><div class="e-icon">🤐</div><p>No rants yet.</p></div>`; return; }
-    visibleRants.forEach(r => pf.appendChild(buildCard(r, !isMe)));
   }
 
   function openFollowModal(title, userList) {
@@ -616,32 +860,93 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function openEditProfile() {
-    const user = Storage.getUserByUsername(ME.username);
-    const modal = document.createElement('div'); modal.className = 'modal-overlay';
-    modal.innerHTML = `<div class="modal-box">
-      <h3>Edit Profile</h3>
-      <div class="settings-field"><label>Bio</label><textarea id="bio-in" rows="3" placeholder="Tell people about yourself…">${Utils.escapeHtml(user?.bio || '')}</textarea></div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="ep-cancel">Cancel</button>
-        <button class="btn btn-primary btn-sm" id="ep-save">Save</button>
-      </div></div>`;
-    document.body.appendChild(modal);
-    requestAnimationFrame(() => modal.classList.add('open'));
-    modal.querySelector('#ep-cancel').addEventListener('click', () => { modal.classList.remove('open'); setTimeout(() => modal.remove(), 200); });
-    modal.querySelector('#ep-save').addEventListener('click', () => {
-      Storage.updateUser(ME.username, { bio: modal.querySelector('#bio-in').value.trim() });
-      modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
-      Utils.showToast('Profile updated!', 'success'); navigate('profile');
+    Storage.getUserByUsernameAsync(ME.username).then(user => {
+        const modal = document.createElement('div'); modal.className = 'modal-overlay';
+        modal.innerHTML = `<div class="modal-box">
+            <h3>Edit Profile</h3>
+            
+            <div class="settings-field">
+                <label>Profile Photo</label>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+                    <div id="ep-av-preview" style="width:56px;height:56px;border-radius:50%;background:${Utils.getAvatarColor(ME.username)};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;overflow:hidden">
+                        ${user?.avatar ? `<img src="${user.avatar}" style="width:100%;height:100%;object-fit:cover"/>` : Utils.getInitials(ME.username)}
+                    </div>
+                    <label class="btn btn-ghost btn-sm" for="ep-av-input" style="cursor:pointer">📷 Change Photo</label>
+                    <input type="file" id="ep-av-input" accept="image/*" style="display:none"/>
+                </div>
+            </div>
+
+            <div class="settings-field" style="margin-top:14px">
+                <label>Cover Photo</label>
+                <div style="margin-top:6px;border-radius:8px;overflow:hidden;height:80px;background:linear-gradient(135deg,#4c1d95,#7c3aed,#06b6d4);position:relative">
+                    <div id="ep-cover-preview" style="width:100%;height:100%;background-size:cover;background-position:center">
+                        ${user?.cover ? `<img src="${user.cover}" style="width:100%;height:100%;object-fit:cover"/>` : ''}
+                    </div>
+                    <label class="btn btn-ghost btn-xs" for="ep-cover-input" style="position:absolute;bottom:6px;right:6px;cursor:pointer;background:rgba(0,0,0,0.5)">📷 Change</label>
+                    <input type="file" id="ep-cover-input" accept="image/*" style="display:none"/>
+                </div>
+            </div>
+
+            <div class="settings-field" style="margin-top:14px">
+                <label>Bio</label>
+                <textarea id="bio-in" rows="3" placeholder="Tell people about yourself…">${Utils.escapeHtml(user?.bio || '')}</textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-ghost btn-sm" id="ep-cancel">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="ep-save">Save</button>
+            </div>
+        </div>`;
+
+        document.body.appendChild(modal);
+        requestAnimationFrame(() => modal.classList.add('open'));
+
+        // Avatar preview
+        modal.querySelector('#ep-av-input').addEventListener('change', function() {
+            const file = this.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                modal.querySelector('#ep-av-preview').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover"/>`;
+                modal.querySelector('#ep-av-input')._base64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Cover preview
+        modal.querySelector('#ep-cover-input').addEventListener('change', function() {
+            const file = this.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                modal.querySelector('#ep-cover-preview').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover"/>`;
+                modal.querySelector('#ep-cover-input')._base64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        modal.querySelector('#ep-cancel').addEventListener('click', () => {
+            modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
+        });
+
+        modal.querySelector('#ep-save').addEventListener('click', () => {
+            const updates = { bio: modal.querySelector('#bio-in').value.trim() };
+            const avatarData = modal.querySelector('#ep-av-input')._base64;
+            const coverData  = modal.querySelector('#ep-cover-input')._base64;
+            if (avatarData) updates.avatar = avatarData;
+            if (coverData)  updates.cover  = coverData;
+
+            Storage.updateUser(ME.username, updates);
+            modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
+            Utils.showToast('Profile updated!', 'success');
+            navigate('profile');
+        });
     });
-  }
+}
 
   // ════════════════════════════════════════
   // SETTINGS
   // ════════════════════════════════════════
   function renderSettings(c) {
-    const user = Storage.getUserByUsername(ME.username);
     const theme = Storage.getTheme();
-    const blocked = Storage.getBlockedUsers(ME.username);
     c.innerHTML = `
       <div class="page-hdr"><h2>Settings</h2></div>
       <div class="settings-section">
@@ -657,7 +962,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="settings-section">
         <h3>Account</h3>
         <div class="settings-field"><label>Username</label><input type="text" value="${Utils.escapeHtml(ME.username)}" disabled style="opacity:0.5"/></div>
-        <div class="settings-field"><label>Bio</label><textarea id="set-bio" rows="3">${Utils.escapeHtml(user?.bio || '')}</textarea></div>
+        <div class="settings-field"><label>Bio</label><textarea id="set-bio" rows="3" placeholder="Loading…"></textarea></div>
         <button class="btn btn-primary btn-sm" id="save-bio">Save Bio</button>
       </div>
       <div class="settings-section">
@@ -667,37 +972,46 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="settings-field"><label>Confirm New</label><input type="password" id="con-pw" placeholder="••••••••"/></div>
         <button class="btn btn-primary btn-sm" id="save-pw">Update Password</button>
       </div>
-      <div class="settings-section">
+      <div class="settings-section" id="blocked-section">
         <h3>Blocked Users</h3>
-        ${blocked.length
-        ? blocked.map(u => `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-              <div class="av xs" style="background:${Utils.getAvatarColor(u)}">${Utils.getInitials(u)}</div>
-              <span style="flex:1;font-size:14px">@${Utils.escapeHtml(u)}</span>
-              <button class="btn btn-ghost btn-xs unblock-btn" data-u="${u}">Unblock</button>
-            </div>`).join('')
-        : '<p style="font-size:14px;color:var(--text3)">No blocked users.</p>'
-      }
+        <p style="font-size:14px;color:var(--text3)">Loading…</p>
       </div>
       <div class="settings-section">
         <h3>Danger Zone</h3>
         <button class="btn btn-danger-soft btn-sm" id="logout-set">Log Out</button>
       </div>`;
 
+    // Load user data async
+    Storage.getUserByUsernameAsync(ME.username).then(user => {
+      const bioEl = c.querySelector('#set-bio');
+      if (bioEl) bioEl.value = user?.bio || '';
+    });
+
+    // Load blocked users async
+    fetch('storage_api.php?action=get_blocked').then(r=>r.json()).then(blocked => {
+      const sec = c.querySelector('#blocked-section');
+      sec.innerHTML = `<h3>Blocked Users</h3>` + (blocked.length
+        ? blocked.map(u => `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <div class="av xs" style="background:${Utils.getAvatarColor(u)}">${Utils.getInitials(u)}</div>
+              <span style="flex:1;font-size:14px">@${Utils.escapeHtml(u)}</span>
+              <button class="btn btn-ghost btn-xs unblock-btn" data-u="${u}">Unblock</button>
+            </div>`).join('')
+        : '<p style="font-size:14px;color:var(--text3)">No blocked users.</p>');
+      sec.querySelectorAll('.unblock-btn').forEach(btn => {
+        btn.addEventListener('click', () => { Storage.unblockUser(ME.username, btn.dataset.u); Utils.showToast('Unblocked.', 'success'); renderSettings(c); });
+      });
+    });
+
     c.querySelector('#theme-check').addEventListener('change', e => { const next = e.target.checked ? 'dark' : 'light'; Storage.setTheme(next); applyTheme(next); });
     c.querySelector('#save-bio').addEventListener('click', () => { Storage.updateUser(ME.username, { bio: c.querySelector('#set-bio').value.trim() }); Utils.showToast('Bio saved!', 'success'); });
     c.querySelector('#logout-set').addEventListener('click', () => Auth.logout());
     c.querySelector('#save-pw').addEventListener('click', () => {
-      const usr = Storage.getUserByUsername(ME.username);
       const cur = c.querySelector('#cur-pw').value, nw = c.querySelector('#new-pw').value, cn = c.querySelector('#con-pw').value;
-      if (usr.password !== cur) { Utils.showToast('Current password wrong.', 'error'); return; }
       if (nw.length < 6) { Utils.showToast('New password too short.', 'error'); return; }
       if (nw !== cn) { Utils.showToast('Passwords do not match.', 'error'); return; }
       Storage.updateUser(ME.username, { password: nw });
       Utils.showToast('Password updated!', 'success');
       c.querySelector('#cur-pw').value = ''; c.querySelector('#new-pw').value = ''; c.querySelector('#con-pw').value = '';
-    });
-    c.querySelectorAll('.unblock-btn').forEach(btn => {
-      btn.addEventListener('click', () => { Storage.unblockUser(ME.username, btn.dataset.u); Utils.showToast('Unblocked.', 'success'); renderSettings(c); });
     });
   }
 
@@ -706,15 +1020,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // ════════════════════════════════════════
   function openReportModal(rant) {
     const modal = document.createElement('div'); modal.className = 'modal-overlay';
+    const reasons = [
+      ['hate_speech','Hate speech'],['harassment','Harassment'],['spam','Spam'],
+      ['misinformation','Misinformation'],['explicit_content','Explicit content'],['other','Other']
+    ];
+    const reasonsHTML = reasons.map(([val, label]) =>
+      `<label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);width:100%;box-sizing:border-box;">
+        <input type="radio" name="report-reason" value="${val}" style="width:16px;height:16px;flex-shrink:0;accent-color:var(--accent);cursor:pointer;"/>
+        <span style="flex:1;">${label}</span>
+      </label>`
+    ).join('');
     modal.innerHTML = `<div class="modal-box">
       <h3>Report Rant</h3>
       <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Why are you reporting this rant?</p>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${['Hate speech', 'Harassment', 'Spam', 'Misinformation', 'Explicit content', 'Other'].map(r => `
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;padding:8px;border-radius:var(--radius);border:1px solid var(--border)">
-            <input type="radio" name="report-reason" value="${r}"/> ${r}
-          </label>`).join('')}
-      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">${reasonsHTML}</div>
       <div class="modal-actions">
         <button class="btn btn-ghost btn-sm" id="r-cancel">Cancel</button>
         <button class="btn btn-danger-soft btn-sm" id="r-submit">Submit Report</button>
@@ -725,81 +1044,54 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.querySelector('#r-submit').addEventListener('click', () => {
       const reason = modal.querySelector('input[name="report-reason"]:checked');
       if (!reason) { Utils.showToast('Pick a reason.', 'warning'); return; }
-      Storage.addReport({ rantId: rant.id, rantContent: rant.content, rantAuthor: rant.username, reportedBy: ME.username, reason: reason.value });
-      modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
-      Utils.showToast('Reported. Thank you.', 'success');
+      const submitBtn = modal.querySelector('#r-submit');
+      submitBtn.disabled = true; submitBtn.textContent = 'Submitting…';
+      const formData = new FormData();
+      formData.append('rant_id', rant.id || rant.rant_ID);
+      formData.append('reason', reason.value);
+      fetch('report_rant.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+          modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
+          if (data.ok) Utils.showToast('Reported. Thank you.', 'success');
+          else if (data.error === 'Already reported') Utils.showToast('You already reported this rant.', 'warning');
+          else Utils.showToast(data.error || 'Something went wrong.', 'error');
+        })
+        .catch(() => { Utils.showToast('Network error. Try again.', 'error'); submitBtn.disabled = false; submitBtn.textContent = 'Submit Report'; });
     });
     modal.addEventListener('click', e => { if (e.target === modal) { modal.classList.remove('open'); setTimeout(() => modal.remove(), 200); } });
   }
 
   // ════════════════════════════════════════
-  // COMMENTS: load & build
+  // COMMENTS
   // ════════════════════════════════════════
-
-  // Fetches all comments for a rant and renders them into #cl-{rantId}
   function loadComments(rantId, container) {
     const list = container.querySelector(`#cl-${rantId}`);
     if (!list) return;
     list.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0">Loading…</div>';
-
     fetch(`get_comments.php?rant_id=${rantId}`)
       .then(r => r.json())
       .then(comments => {
         list.innerHTML = '';
-        if (!Array.isArray(comments) || !comments.length) {
-          list.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:8px 0">No comments yet.</div>`;
-          return;
-        }
-        comments.forEach(cm => {
-          list.appendChild(buildCommentItem(
-            {
-              id: cm.comment_ID || cm.comment_id,
-              username: cm.username,
-              text: cm.comment_text,
-              createdAt: cm.created_at,
-              reactions: cm.reactions || {},
-              user_reaction: cm.user_reaction || null,
-            },
-            rantId,
-            container
-          ));
-        });
+        if (!Array.isArray(comments) || !comments.length) { list.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:8px 0">No comments yet.</div>`; return; }
+        comments.forEach(cm => list.appendChild(buildCommentItem({ id: cm.comment_ID || cm.comment_id, username: cm.username, text: cm.comment_text, createdAt: cm.created_at, reactions: cm.reactions || {}, user_reaction: cm.user_reaction || null }, rantId, container)));
       })
-      .catch(err => {
-        console.error('Error loading comments:', err);
-        list.innerHTML = `<div style="font-size:13px;color:var(--danger);padding:8px 0">Failed to load comments.</div>`;
-      });
+      .catch(err => { list.innerHTML = `<div style="font-size:13px;color:var(--danger);padding:8px 0">Failed to load comments.</div>`; });
   }
 
-  // Builds a single comment row (no nesting/depth — flat list)
   function buildCommentItem(cm, rantId, container) {
     const isOwn = cm.username === ME.username;
-
-    // Build initial reaction chips HTML from pre-loaded data
     const initReactions = cm.reactions || {};
     const initUserReaction = cm.user_reaction || null;
-    const initChips = Object.entries(initReactions)
-      .filter(([, count]) => count > 0)
-      .map(([emoji, count]) =>
-        `<div class="reaction-chip cm-reaction-chip ${initUserReaction === emoji ? 'mine' : ''}"
-              data-emoji="${emoji}" data-cid="${cm.id}">${emoji} ${count}</div>`
-      ).join('');
+    const initChips = Object.entries(initReactions).filter(([, count]) => count > 0)
+      .map(([emoji, count]) => `<div class="reaction-chip cm-reaction-chip ${initUserReaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-cid="${cm.id}">${emoji} ${count}</div>`).join('');
 
-    const wrap = document.createElement('div');
-    wrap.className = 'comment-wrap';
-    wrap.dataset.cid = cm.id;
-
-    const row = document.createElement('div');
-    row.className = 'comment-item';
-
-    // Avatar
+    const wrap = document.createElement('div'); wrap.className = 'comment-wrap'; wrap.dataset.cid = cm.id;
+    const row = document.createElement('div'); row.className = 'comment-item';
     const av = Utils.avatar(cm.username, 'xs');
     av.style.cursor = 'pointer';
     av.addEventListener('click', () => render('userprofile', { username: cm.username }));
-
-    // Body
-    const body = document.createElement('div');
-    body.className = 'comment-body';
+    const body = document.createElement('div'); body.className = 'comment-body';
     body.innerHTML = `
       <div class="comment-header">
         <span class="comment-name" style="cursor:pointer">@${Utils.escapeHtml(cm.username)}</span>
@@ -809,12 +1101,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="reactions-row" id="crr-${cm.id}">${initChips}</div>
       <div class="comment-actions">
         <div class="reactions-wrap">
-          <button class="cm-action-btn cm-react-btn" title="React">
-            <span class="cm-react-icon">${initUserReaction || '😊'}</span>
-          </button>
-          <div class="reaction-picker" id="crp-${cm.id}">
-            ${REACTIONS.map(e => `<button class="r-emoji cm-r-emoji" data-emoji="${e}" data-cid="${cm.id}">${e}</button>`).join('')}
-          </div>
+          <button class="cm-action-btn cm-react-btn" title="React"><span class="cm-react-icon">${initUserReaction || '😊'}</span></button>
+          <div class="reaction-picker" id="crp-${cm.id}">${REACTIONS.map(e => `<button class="r-emoji cm-r-emoji" data-emoji="${e}" data-cid="${cm.id}">${e}</button>`).join('')}</div>
         </div>
         <button class="cm-action-btn cm-reply-btn">↩ Reply</button>
         ${isOwn ? `<button class="cm-action-btn cm-del-btn" style="color:var(--danger)">🗑</button>` : ''}
@@ -828,14 +1116,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
-    // Name click
     body.querySelector('.comment-name').addEventListener('click', () => render('userprofile', { username: cm.username }));
 
-    // ── Comment reactions ──
     async function postCommentReaction(emoji, cid) {
       const formData = new FormData();
-      formData.append('comment_id', cid);
-      formData.append('reaction_type', emoji);
+      formData.append('comment_id', cid); formData.append('reaction_type', emoji);
       try {
         const response = await fetch('save_comment_reaction.php', { method: 'POST', body: formData });
         const data = await response.json();
@@ -843,114 +1128,47 @@ document.addEventListener('DOMContentLoaded', () => {
           updateCommentReactionChips(cid, data.reactions, data.user_reaction, body);
           body.querySelector('.cm-react-icon').textContent = data.user_reaction || '😊';
           body.querySelector(`#crp-${cid}`).classList.remove('open');
-        } else {
-          Utils.showToast(data.message || 'Failed to react', 'error');
-        }
-      } catch (err) {
-        console.error('Comment reaction error:', err);
-        Utils.showToast('Network error', 'error');
-      }
+        } else Utils.showToast(data.message || 'Failed to react', 'error');
+      } catch (err) { Utils.showToast('Network error', 'error'); }
     }
 
-    body.querySelector('.cm-react-btn').addEventListener('click', e => {
-      e.stopPropagation();
-      document.querySelectorAll('.reaction-picker.open').forEach(p => p.classList.remove('open'));
-      body.querySelector(`#crp-${cm.id}`).classList.toggle('open');
-    });
-
-    body.querySelectorAll('.cm-r-emoji').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        postCommentReaction(btn.dataset.emoji, btn.dataset.cid);
-      });
-    });
-
-    // Reaction chip clicks (delegated)
-    body.addEventListener('click', e => {
-      const chip = e.target.closest('.cm-reaction-chip');
-      if (chip) {
-        e.stopPropagation();
-        postCommentReaction(chip.dataset.emoji, chip.dataset.cid);
-      }
-    });
-
-    // ── Reply ──
-    body.querySelector('.cm-reply-btn').addEventListener('click', () => {
-      const inp = body.querySelector('.cm-reply-input');
-      const isOpen = inp.style.display !== 'none';
-      inp.style.display = isOpen ? 'none' : 'block';
-      if (!isOpen) inp.querySelector('.cm-reply-ta').focus();
-    });
-
-    body.querySelector('.cm-cancel-reply').addEventListener('click', () => {
-      body.querySelector('.cm-reply-input').style.display = 'none';
-    });
+    body.querySelector('.cm-react-btn').addEventListener('click', e => { e.stopPropagation(); document.querySelectorAll('.reaction-picker.open').forEach(p => p.classList.remove('open')); body.querySelector(`#crp-${cm.id}`).classList.toggle('open'); });
+    body.querySelectorAll('.cm-r-emoji').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); postCommentReaction(btn.dataset.emoji, btn.dataset.cid); }));
+    body.addEventListener('click', e => { const chip = e.target.closest('.cm-reaction-chip'); if (chip) { e.stopPropagation(); postCommentReaction(chip.dataset.emoji, chip.dataset.cid); } });
+    body.querySelector('.cm-reply-btn').addEventListener('click', () => { const inp = body.querySelector('.cm-reply-input'); const isOpen = inp.style.display !== 'none'; inp.style.display = isOpen ? 'none' : 'block'; if (!isOpen) inp.querySelector('.cm-reply-ta').focus(); });
+    body.querySelector('.cm-cancel-reply').addEventListener('click', () => { body.querySelector('.cm-reply-input').style.display = 'none'; });
 
     function sendReply() {
-      const ta = body.querySelector('.cm-reply-ta');
-      const text = ta.value.trim();
-      if (!text) return;
-
+      const ta = body.querySelector('.cm-reply-ta'); const text = ta.value.trim(); if (!text) return;
       const formData = new FormData();
-      formData.append('rant_id', rantId);
-      formData.append('comment_text', text);
+      formData.append('rant_id', rantId); formData.append('comment_text', text);
       if (cm.id) formData.append('parent_id', cm.id);
-
-      fetch('save_comment.php', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            ta.value = '';
-            body.querySelector('.cm-reply-input').style.display = 'none';
-            loadComments(rantId, container);
-          } else {
-            Utils.showToast('Error: ' + (data.message || 'Unknown error'), 'error');
-          }
-        })
-        .catch(err => {
-          console.error('Reply error:', err);
-          Utils.showToast('Network error posting reply', 'error');
-        });
+      fetch('save_comment.php', { method: 'POST', body: formData }).then(r => r.json()).then(data => {
+        if (data.success) { ta.value = ''; body.querySelector('.cm-reply-input').style.display = 'none'; loadComments(rantId, container); }
+        else Utils.showToast('Error: ' + (data.message || 'Unknown error'), 'error');
+      }).catch(() => Utils.showToast('Network error posting reply', 'error'));
     }
-
     body.querySelector('.cm-send-reply').addEventListener('click', sendReply);
     body.querySelector('.cm-reply-ta').addEventListener('keydown', e => { if (e.key === 'Enter') sendReply(); });
 
-    // ── Delete (own comments only) ──
     if (isOwn) {
       body.querySelector('.cm-del-btn').addEventListener('click', () => {
         if (!confirm('Delete this comment?')) return;
-        const formData = new FormData();
-        formData.append('comment_id', cm.id);
-        fetch('delete_comment.php', { method: 'POST', body: formData })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              wrap.remove();
-              Utils.showToast('Comment deleted.', 'info');
-            } else {
-              Utils.showToast(data.message || 'Failed to delete', 'error');
-            }
-          })
-          .catch(() => Utils.showToast('Network error', 'error'));
+        const formData = new FormData(); formData.append('comment_id', cm.id);
+        fetch('delete_comment.php', { method: 'POST', body: formData }).then(r => r.json()).then(data => {
+          if (data.success) { wrap.remove(); Utils.showToast('Comment deleted.', 'info'); }
+          else Utils.showToast(data.message || 'Failed to delete', 'error');
+        }).catch(() => Utils.showToast('Network error', 'error'));
       });
     }
-
-    row.appendChild(av);
-    row.appendChild(body);
-    wrap.appendChild(row);
+    row.appendChild(av); row.appendChild(body); wrap.appendChild(row);
     return wrap;
   }
 
   function updateCommentReactionChips(cid, reactions, userReaction, container) {
-    const row = container.querySelector(`#crr-${cid}`);
-    if (!row) return;
+    const row = container.querySelector(`#crr-${cid}`); if (!row) return;
     const entries = Object.entries(reactions || {});
-    row.innerHTML = entries.length
-      ? entries.map(([emoji, count]) =>
-          `<div class="reaction-chip cm-reaction-chip ${userReaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-cid="${cid}">${emoji} ${count}</div>`
-        ).join('')
-      : '';
+    row.innerHTML = entries.length ? entries.map(([emoji, count]) => `<div class="reaction-chip cm-reaction-chip ${userReaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-cid="${cid}">${emoji} ${count}</div>`).join('') : '';
   }
 
   // ════════════════════════════════════════
@@ -962,7 +1180,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const showReal = !isAnon || isOwn || ME.role === 'admin';
     const dispName = showReal ? rant.username : 'Anonymous';
     const dispColor = showReal ? Utils.getAvatarColor(rant.username) : '#444455';
-    const likes = rant.likes || [];
     const reactions = rant.reactions || {};
     const initialReactIcon = rant.user_reaction || '😊';
     const rantId = rant.id || rant.rant_ID;
@@ -971,13 +1188,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'post-card'; card.dataset.id = rantId;
 
-    // Avatar
     const av = document.createElement('div');
     av.className = 'av'; av.style.background = dispColor; av.style.flexShrink = '0';
-    const uData = Storage.getUserByUsername(rant.username);
-    if (showReal && uData && uData.avatar) {
+    if (showReal && rant.avatar) {
       av.style.background = 'none';
-      av.innerHTML = `<img src="${uData.avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer"/>`;
+      av.innerHTML = `<img src="${rant.avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer"/>`;
     } else {
       av.textContent = showReal ? Utils.getInitials(rant.username) : '👻';
       if (!showReal) av.style.fontSize = '20px';
@@ -986,43 +1201,33 @@ document.addEventListener('DOMContentLoaded', () => {
     card.appendChild(av);
 
     const right = document.createElement('div'); right.className = 'post-right';
-
     const repostHTML = rant.repostOf ? `<div class="repost-banner">🔁 Reposted from <strong>@${Utils.escapeHtml(rant.repostOf.username)}</strong></div>` : '';
-
-    const reactionChips = Object.entries(reactions)
-      .filter(([, count]) => count > 0)
-      .map(([emoji, count]) =>
-        `<div class="reaction-chip ${rant.user_reaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-id="${rantId}">${emoji} ${count}</div>`
-      ).join('');
+const deletedNotice = (rant.repost_of_id && rant.is_original_deleted) ? `<div class="deleted-notice" style="font-size:13px;color:var(--text3);font-style:italic;padding:8px 0">🗑️ The original rant has been deleted.</div>` : '';
+    const reactionChips = Object.entries(reactions).filter(([, count]) => count > 0)
+      .map(([emoji, count]) => `<div class="reaction-chip ${rant.user_reaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-id="${rantId}">${emoji} ${count}</div>`).join('');
 
     right.innerHTML = `
       ${repostHTML}
+      ${deletedNotice}
       <div class="post-top">
         <span class="post-name ${showReal ? '' : 'anon-name'}" ${showReal ? `data-u="${rant.username}"` : ''}>${isAnon ? '👻 ' : ''}@${Utils.escapeHtml(dispName)}</span>
         ${isAnon && isOwn ? '<span class="anon-badge">only you</span>' : ''}
         <span class="post-sep">·</span>
-        <span class="post-time" data-ts="${rant.createdAt}">${Utils.timeAgo(rant.createdAt)}</span>
-        ${rant.updatedAt ? '<span class="post-edited">edited</span>' : ''}
+        <span class="post-time" data-ts="${rant.created_at || rant.createdAt}">${Utils.timeAgo(rant.created_at || rant.createdAt)}</span>
+        ${rant.updated_at || rant.updatedAt ? '<span class="post-edited">edited</span>' : ''}
       </div>
-      <div class="post-text">${Utils.escapeHtml(rant.content)}</div>
+      <div class="post-text">${rant.is_original_deleted ? '' : Utils.escapeHtml(rant.content)}</div>
       <div class="reactions-row" id="rr-${rantId}">${reactionChips}</div>
       <div class="post-actions">
         <div class="reactions-wrap">
-          <button class="action-btn react-btn" data-id="${rantId}" title="React">
-            <span class="a-icon">${initialReactIcon}</span>
-          </button>
-          <div class="reaction-picker" id="rp-${rantId}">
-            ${REACTIONS.map(e => `<button class="r-emoji" data-emoji="${e}" data-id="${rantId}">${e}</button>`).join('')}
-          </div>
+          <button class="action-btn react-btn" data-id="${rantId}" title="React"><span class="a-icon">${initialReactIcon}</span></button>
+          <div class="reaction-picker" id="rp-${rantId}">${REACTIONS.map(e => `<button class="r-emoji" data-emoji="${e}" data-id="${rantId}">${e}</button>`).join('')}</div>
         </div>
         <button class="action-btn comment-toggle-btn" data-id="${rantId}">
-          <span class="a-icon">💬</span>
-          <span class="comment-count">${totalComments || ''}</span>
+          <span class="a-icon">💬</span><span class="comment-count">${totalComments || ''}</span>
         </button>
         ${!isAnon ? `<button class="action-btn repost-btn" data-id="${rantId}" title="Repost"><span class="a-icon">🔁</span></button>` : ''}
-        ${!readOnly && isOwn ? `
-          <button class="action-btn edit-btn"><span class="a-icon">✏️</span></button>
-          <button class="action-btn del-act"><span class="a-icon">🗑️</span></button>` : ''}
+        ${!readOnly && isOwn ? `<button class="action-btn edit-btn"><span class="a-icon">✏️</span></button><button class="action-btn archive-btn" title="Archive"><span class="a-icon">🗃️</span></button><button class="action-btn del-act"><span class="a-icon">🗑️</span></button>` : ''}
         ${!isOwn ? `<button class="action-btn report-btn" data-id="${rantId}" title="Report" style="margin-left:auto"><span class="a-icon">🚩</span></button>` : ''}
       </div>
       <div class="inline-edit" id="edit-${rantId}">
@@ -1046,24 +1251,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     card.appendChild(right);
 
-    // Name click
-    if (showReal) {
-      const nameEl = right.querySelector('.post-name');
-      nameEl.style.cursor = 'pointer';
-      nameEl.addEventListener('click', () => render('userprofile', { username: rant.username }));
-    }
+    if (showReal) { const nameEl = right.querySelector('.post-name'); nameEl.style.cursor = 'pointer'; nameEl.addEventListener('click', () => render('userprofile', { username: rant.username })); }
 
-    // ── Rant reactions ──
-    right.querySelector('.react-btn').addEventListener('click', e => {
-      e.stopPropagation();
-      document.querySelectorAll('.reaction-picker.open').forEach(p => p.classList.remove('open'));
-      right.querySelector(`#rp-${rantId}`).classList.toggle('open');
-    });
+    right.querySelector('.react-btn').addEventListener('click', e => { e.stopPropagation(); document.querySelectorAll('.reaction-picker.open').forEach(p => p.classList.remove('open')); right.querySelector(`#rp-${rantId}`).classList.toggle('open'); });
 
     async function handleReaction(emoji, id) {
       const formData = new FormData();
-      formData.append('rant_id', id);
-      formData.append('reaction_type', emoji);
+      formData.append('rant_id', id); formData.append('reaction_type', emoji);
       try {
         const response = await fetch('api/save_reaction.php', { method: 'POST', body: formData });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -1076,148 +1270,114 @@ document.addEventListener('DOMContentLoaded', () => {
             Storage.addNotification({ to: rant.username, from: ME.username, type: 'reaction', message: `reacted ${emoji} to your rant.`, rantId: id });
             refreshBadges();
           }
-        } else {
-          Utils.showToast(data.message || 'Failed to react', 'error');
-        }
-      } catch (err) {
-        console.error('Reaction error:', err);
-        Utils.showToast('Network error posting reaction', 'error');
-      }
+        } else Utils.showToast(data.message || 'Failed to react', 'error');
+      } catch (err) { Utils.showToast('Network error posting reaction', 'error'); }
     }
 
-    right.querySelectorAll('.r-emoji').forEach(btn => {
-      btn.addEventListener('click', e => { e.stopPropagation(); handleReaction(btn.dataset.emoji, btn.dataset.id); });
-    });
+    right.querySelectorAll('.r-emoji').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); handleReaction(btn.dataset.emoji, btn.dataset.id); }));
+    right.addEventListener('click', e => { const chip = e.target.closest('.reaction-chip:not(.cm-reaction-chip)'); if (chip) { e.stopPropagation(); handleReaction(chip.dataset.emoji, chip.dataset.id); } });
 
-    right.addEventListener('click', e => {
-      const chip = e.target.closest('.reaction-chip:not(.cm-reaction-chip)');
-      if (chip) { e.stopPropagation(); handleReaction(chip.dataset.emoji, chip.dataset.id); }
-    });
-
-    // ── Repost ──
     const repostBtn = right.querySelector('.repost-btn');
     if (repostBtn) repostBtn.addEventListener('click', () => {
       if (!confirm(`Repost this rant from @${rant.username}?`)) return;
-      Storage.repost(rant.id, ME.username);
-      Utils.showToast('Reposted!', 'success');
-      if (currentPage === 'home') render('home');
-      if (rant.username !== ME.username) {
-        Storage.addNotification({ to: rant.username, from: ME.username, type: 'repost', message: 'reposted your rant.', rantId: rant.id });
-        refreshBadges();
-      }
+      Storage.repostAsync(rantId).then(data => {
+    if (data && data.error) {
+        Utils.showToast(data.error === 'Already reposted' ? 'You already reposted this!' : data.error, 'warning');
+        return;
+    }
+    Utils.showToast('Reposted!', 'success');
+        if (currentPage === 'home') render('home');
+        if (rant.username !== ME.username) { Storage.addNotification({ to: rant.username, from: ME.username, type: 'repost', message: 'reposted your rant.', rantId }); refreshBadges(); }
+      });
     });
 
-    // ── Report ──
     const reportBtn = right.querySelector('.report-btn');
     if (reportBtn) reportBtn.addEventListener('click', () => openReportModal(rant));
 
-    // ── Comment toggle ──
     right.querySelector('.comment-toggle-btn').addEventListener('click', () => {
       const cs = right.querySelector(`#cs-${rantId}`);
       cs.classList.toggle('open');
-      if (cs.classList.contains('open')) {
-        loadComments(rantId, right);
-      }
+      if (cs.classList.contains('open')) loadComments(rantId, right);
     });
 
-    // ── Post comment ──
     function sendComment() {
-      const inp = right.querySelector('.comment-input');
-      const text = inp.value.trim(); if (!text) return;
-
+      const inp = right.querySelector('.comment-input'); const text = inp.value.trim(); if (!text) return;
       const formData = new FormData();
-      formData.append('rant_id', rantId);
-      formData.append('comment_text', text);
-
-      fetch('save_comment.php', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            inp.value = '';
-            loadComments(rantId, right);
-            if (rant.username !== ME.username && !isAnon) {
-              Storage.addNotification({ to: rant.username, from: ME.username, type: 'comment', message: 'commented on your rant.', rantId });
-              refreshBadges();
-            }
-            if (data.comment_count !== undefined) {
-              right.querySelector('.comment-count').textContent = data.comment_count || '';
-            }
-            Utils.showToast('Comment posted!', 'success');
-          } else {
-            Utils.showToast(`Failed to post comment: ${data.message || 'Unknown error'}`, 'error');
-          }
-        })
-        .catch(() => Utils.showToast('Error posting comment', 'error'));
+      formData.append('rant_id', rantId); formData.append('comment_text', text);
+      fetch('save_comment.php', { method: 'POST', body: formData }).then(r => r.json()).then(data => {
+        if (data.success) {
+          inp.value = ''; loadComments(rantId, right);
+          if (rant.username !== ME.username && !isAnon) { Storage.addNotification({ to: rant.username, from: ME.username, type: 'comment', message: 'commented on your rant.', rantId }); refreshBadges(); }
+          if (data.comment_count !== undefined) right.querySelector('.comment-count').textContent = data.comment_count || '';
+          Utils.showToast('Comment posted!', 'success');
+        } else Utils.showToast(`Failed to post comment: ${data.message || 'Unknown error'}`, 'error');
+      }).catch(() => Utils.showToast('Error posting comment', 'error'));
     }
-
     right.querySelector('.send-comment').addEventListener('click', sendComment);
     right.querySelector('.comment-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendComment(); });
 
-    // ── Edit / Delete ──
     if (!readOnly && isOwn) {
       const editSection = right.querySelector(`#edit-${rantId}`);
       const editTa = editSection.querySelector('textarea');
       const ec = editSection.querySelector('.ec');
-
-      right.querySelector('.edit-btn').addEventListener('click', () => {
-        editSection.style.display = 'block';
-        right.querySelector('.post-text').style.display = 'none';
-        right.querySelector('.post-actions').style.display = 'none';
-        editTa.focus();
-      });
-      editSection.querySelector('.cancel-edit').addEventListener('click', () => {
-        editSection.style.display = 'none';
-        right.querySelector('.post-text').style.display = '';
-        right.querySelector('.post-actions').style.display = '';
-      });
-      editTa.addEventListener('input', () => {
-        const l = editTa.value.length;
-        ec.textContent = `${l} / ${MAX}`; ec.className = 'ec' + (l > MAX ? ' over' : '');
-        editSection.querySelector('.save-edit').disabled = l === 0 || l > MAX;
-      });
+      right.querySelector('.edit-btn').addEventListener('click', () => { editSection.style.display = 'block'; right.querySelector('.post-text').style.display = 'none'; right.querySelector('.post-actions').style.display = 'none'; editTa.focus(); });
+      editSection.querySelector('.cancel-edit').addEventListener('click', () => { editSection.style.display = 'none'; right.querySelector('.post-text').style.display = ''; right.querySelector('.post-actions').style.display = ''; });
+      editTa.addEventListener('input', () => { const l = editTa.value.length; ec.textContent = `${l} / ${MAX}`; ec.className = 'ec' + (l > MAX ? ' over' : ''); editSection.querySelector('.save-edit').disabled = l === 0 || l > MAX; });
       editSection.querySelector('.save-edit').addEventListener('click', () => {
-        const nc = editTa.value.trim(); if (!nc || nc.length > MAX) return;
-        Storage.updateRant(rantId, { content: nc, updatedAt: new Date().toISOString() });
-        Utils.showToast('Updated!', 'success'); render(currentPage);
-      });
+    const nc = editTa.value.trim(); if (!nc || nc.length > MAX) return;
+    const fd = new FormData();
+    fd.append('rant_id', rantId);
+    fd.append('content', nc);
+    fetch('edit_rant.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Utils.showToast('Updated!', 'success');
+                right.querySelector('.post-text').textContent = nc;
+                editSection.style.display = 'none';
+                right.querySelector('.post-text').style.display = '';
+                right.querySelector('.post-actions').style.display = '';
+            } else {
+                Utils.showToast(data.message || 'Failed to update', 'error');
+            }
+        })
+        .catch(() => Utils.showToast('Network error', 'error'));
+});
       right.querySelector('.del-act').addEventListener('click', () => {
         if (!confirm('Delete this rant?')) return;
-        const formData = new FormData();
-        formData.append('rant_id', rantId);
-
-        fetch('api/delete_rant.php', { method: 'POST', body: formData })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              Storage.deleteRant(rantId);
-              Storage.deleteCommentsByRant(rantId);
-              Utils.showToast('Deleted.', 'info');
-              render(currentPage);
-              renderRight();
-            } else {
-              Utils.showToast(data.message || 'Failed to delete', 'error');
-            }
-          })
-          .catch(() => Utils.showToast('Network error deleting rant', 'error'));
+        const formData = new FormData(); formData.append('rant_id', rantId);
+        fetch('api/delete_rant.php', { method: 'POST', body: formData }).then(res => res.json()).then(data => {
+          if (data.success) { Utils.showToast('Deleted.', 'info'); render(currentPage); renderRight(); }
+          else Utils.showToast(data.message || 'Failed to delete', 'error');
+        }).catch(() => Utils.showToast('Network error deleting rant', 'error'));
       });
-    }
+    } const archiveBtn = right.querySelector('.archive-btn');
+if (archiveBtn) archiveBtn.addEventListener('click', () => {
+    if (!confirm('Archive this rant? It will be hidden from your feed.')) return;
+    const fd = new FormData();
+    fd.append('action', 'archive_rant');
+    fd.append('rant_id', rantId);
+    fetch('storage_api.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                card.remove();
+                Utils.showToast('Rant archived.', 'info');
+            } else Utils.showToast(data.error || 'Failed to archive', 'error');
+        });
+});
 
     return card;
   }
 
   function updateReactionChips(rantId, reactions, userReaction, container) {
-    const row = container.querySelector(`#rr-${rantId}`);
-    if (!row) return;
+    const row = container.querySelector(`#rr-${rantId}`); if (!row) return;
     const entries = Object.entries(reactions || {});
-    row.innerHTML = entries.length
-      ? entries.map(([emoji, count]) =>
-          `<div class="reaction-chip ${userReaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-id="${rantId}">${emoji} ${count}</div>`
-        ).join('')
-      : '';
+    row.innerHTML = entries.length ? entries.map(([emoji, count]) => `<div class="reaction-chip ${userReaction === emoji ? 'mine' : ''}" data-emoji="${emoji}" data-id="${rantId}">${emoji} ${count}</div>`).join('') : '';
   }
 
   // ════════════════════════════════════════
-  // RANT MODAL (floating compose)
+  // RANT MODAL
   // ════════════════════════════════════════
   function openRantModal() {
     const modal = document.getElementById('rant-modal');
@@ -1231,40 +1391,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalCc = document.getElementById('modal-cc');
 
   if (modalCancel) modalCancel.addEventListener('click', () => { document.getElementById('rant-modal').classList.remove('open'); modalTa.value = ''; });
-  if (modalTa) modalTa.addEventListener('input', () => {
-    const len = modalTa.value.length;
-    modalCc.textContent = `${len} / ${MAX}`;
-    modalPost.disabled = len === 0 || len > MAX;
-  });
+  if (modalTa) modalTa.addEventListener('input', () => { const len = modalTa.value.length; modalCc.textContent = `${len} / ${MAX}`; modalPost.disabled = len === 0 || len > MAX; });
   if (modalPost) modalPost.addEventListener('click', () => {
     const content = modalTa.value.trim(); if (!content || content.length > MAX) return;
     modalPost.disabled = true; modalPost.textContent = 'Posting…';
-
     const formData = new FormData();
-    formData.append('content', content);
-    formData.append('anonymous', '0');
-
-    fetch('save_rant.php', { method: 'POST', body: formData })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          document.getElementById('rant-modal').classList.remove('open');
-          modalTa.value = '';
-          Utils.showToast('Rant posted!', 'success');
-          if (currentPage === 'home') render('home');
-          renderRight();
-        } else {
-          Utils.showToast(`Failed to post: ${data.message}`, 'error');
-        }
-        modalPost.disabled = false; modalPost.textContent = 'Post';
-      })
-      .catch(() => {
-        Utils.showToast('Error posting rant', 'error');
-        modalPost.disabled = false; modalPost.textContent = 'Post';
-      });
+    formData.append('content', content); formData.append('anonymous', '0');
+    fetch('save_rant.php', { method: 'POST', body: formData }).then(r => r.json()).then(data => {
+      if (data.success) { document.getElementById('rant-modal').classList.remove('open'); modalTa.value = ''; Utils.showToast('Rant posted!', 'success'); if (currentPage === 'home') render('home'); renderRight(); }
+      else Utils.showToast(`Failed to post: ${data.message}`, 'error');
+      modalPost.disabled = false; modalPost.textContent = 'Post';
+    }).catch(() => { Utils.showToast('Error posting rant', 'error'); modalPost.disabled = false; modalPost.textContent = 'Post'; });
   });
 
-  // ── Tick timestamps every 30s ──
   setInterval(() => { document.querySelectorAll('[data-ts]').forEach(el => el.textContent = Utils.timeAgo(el.dataset.ts)); }, 30000);
 
   refreshBadges();

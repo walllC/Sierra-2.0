@@ -56,6 +56,33 @@ if (!isset($_SESSION['user_ID']) || $_SESSION['role'] !== 'admin') {
         <div id="recent-rants"></div>
       </div>
     </section>
+    <!-- ALL RANTS -->
+    <section class="admin-section" id="sec-rants">
+      <div class="a-page-title">All Rants</div>
+      <div id="all-rants-list"></div>
+    </section>
+
+    <!-- USERS -->
+    <section class="admin-section" id="sec-users">
+      <div class="a-page-title">Users</div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="admin-section" id="sec-reports">
+      <div class="a-page-title">Reports</div>
+      <div id="reports-list">No reports yet.</div>
+    </section>
 
     </main>
 </div>
