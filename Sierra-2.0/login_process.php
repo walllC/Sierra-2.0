@@ -27,6 +27,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_ID'] = $user['user_ID'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
+            $activeUserId = (int)$user['user_ID'];
+            mysqli_query($conn, "UPDATE users SET last_active_at = NOW() WHERE user_ID = {$activeUserId}");
 
             // Redirect based on role
             

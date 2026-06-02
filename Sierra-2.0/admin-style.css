@@ -74,6 +74,48 @@
   padding: 14px 18px; border-bottom: 1px solid var(--border);
   font-size: 14px; font-weight: 700;
 }
+.tbl-hdr.with-tabs {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.dash-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px; margin-bottom: 24px;
+}
+.mini-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.mini-tab {
+  border: 1px solid var(--border); background: var(--bg3); color: var(--text2);
+  border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 700;
+  cursor: pointer;
+}
+.mini-tab.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+.trend-row {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 12px; align-items: center; padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.trend-row:last-child { border-bottom: none; }
+.trend-rank {
+  width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--bg3); color: var(--text2); font-size: 12px; font-weight: 800;
+}
+.trend-main { min-width: 0; }
+.trend-title {
+  font-size: 13px; font-weight: 800; color: var(--text);
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.trend-title span { font-size: 11px; font-weight: 600; color: var(--text3); }
+.trend-text {
+  margin-top: 3px; font-size: 12px; color: var(--text2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.trend-metric {
+  min-width: 54px; text-align: right; font-size: 20px; font-weight: 900; color: var(--accent);
+}
+.trend-metric span {
+  display: block; font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.trend-empty { padding: 22px; text-align: center; color: var(--text3); }
 
 /* ── Admin Table (both class names supported) ── */
 .admin-tbl, .admin-table {

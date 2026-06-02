@@ -49,6 +49,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('s-banned').textContent   = data.bannedCount;
         document.getElementById('s-comments').textContent = data.commentCount;
         document.getElementById('s-reports').textContent  = data.reportCount;
+        document.getElementById('s-active-week').textContent  = data.activeCounts?.week || 0;
+        document.getElementById('s-active-month').textContent = data.activeCounts?.month || 0;
+
+        renderTrendList('liked', 'today', data.mostLiked || {});
+        renderTrendList('active', 'week', data.activeUsers || {});
+        bindTrendTabs(data);
 
         const rr = document.getElementById('recent-rants');
         rr.innerHTML = '';
@@ -57,6 +63,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             data.recentRants.forEach(r => rr.appendChild(buildRantCard(r)));
         }
+    }
+
+    function bindTrendTabs(data) {
+        document.querySelectorAll('.mini-tabs').forEach(group => {
+            group.querySelectorAll('.mini-tab').forEach(btn => {
+                btn.onclick = () => {
+                    group.querySelectorAll('.mini-tab').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const target = group.dataset.target;
+                    const source = target === 'liked' ? data.mostLiked : data.activeUsers;
+                    renderTrendList(target, btn.dataset.period, source || {});
+                };
+            });
+        });
+    }
+
+    function renderTrendList(type, period, source) {
+        const list = document.getElementById(type === 'liked' ? 'trend-liked' : 'trend-active');
+        const rows = source[period] || [];
+
+        if (!rows.length) {
+            list.innerHTML = `<div class="empty trend-empty"><p>No data for this period.</p></div>`;
+            return;
+        }
+
+        list.innerHTML = '';
+        rows.forEach((row, index) => {
+            const item = document.createElement('div');
+            item.className = 'trend-row';
+
+            if (type === 'liked') {
+                item.innerHTML = `
+                    <div class="trend-rank">${index + 1}</div>
+                    <div class="trend-main">
+                        <div class="trend-title">@${Utils.escapeHtml(row.username)} <span>${formatDate(row.created_at)}</span></div>
+                        <div class="trend-text">${Utils.escapeHtml(row.content || '')}</div>
+                    </div>
+                    <div class="trend-metric">${row.like_count || 0}<span>likes</span></div>`;
+            } else {
+                item.innerHTML = `
+                    <div class="trend-rank">${index + 1}</div>
+                    <div class="trend-main">
+                        <div class="trend-title">@${Utils.escapeHtml(row.username)} <span>${row.last_active_at ? 'Active ' + Utils.timeAgo(row.last_active_at) : 'No activity yet'}</span></div>
+                        <div class="trend-text">${row.rant_count || 0} rants · ${row.comment_count || 0} comments</div>
+                    </div>
+                    <div class="trend-metric">${row.activity_score || 0}<span>actions</span></div>`;
+            }
+
+            list.appendChild(item);
+        });
     }
 
     // --- ALL RANTS ---
@@ -77,12 +133,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         card.innerHTML = `
             <div class="a-rant-body">
                 <div class="a-rant-meta">
-                    <span class="name">@${rant.username}</span>
+                    <span class="name">@${Utils.escapeHtml(rant.username)}</span>
                     <span class="time">· ${rant.created_at}</span>
                 </div>
-                <div class="a-rant-text">${rant.content}</div>
+                <div class="a-rant-text">${Utils.escapeHtml(rant.content || '')}</div>
             </div>
             <button class="btn btn-danger-soft btn-xs del-btn" data-id="${rant.id}">Delete</button>`;
+        card.querySelector('.time').textContent = `· ${formatDate(rant.created_at)}`;
 
         card.querySelector('.del-btn').addEventListener('click', async (e) => {
             if (!confirm('Delete this rant?')) return;
@@ -102,9 +159,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         users.forEach(user => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><strong>${user.username}</strong></td>
+                <td><strong>${Utils.escapeHtml(user.username)}</strong></td>
                 <td><span class="badge" data-val="${user.role}">${user.role}</span></td>
                 <td><span class="badge" data-val="${user.status}">${user.status}</span></td>
+                <td>${user.last_active_at ? formatDate(user.last_active_at) : 'Never'}</td>
+                <td>${formatOffline(user)}</td>
                 <td><button class="btn btn-xs ban-btn">${user.status === 'banned' ? 'Unban' : 'Ban'}</button></td>`;
 
             tr.querySelector('.ban-btn').addEventListener('click', async () => {
@@ -168,6 +227,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             list.appendChild(card);
         });
+    }
+
+    function formatDate(value) {
+        if (!value) return '';
+        return `${value} (${Utils.timeAgo(value)})`;
+    }
+
+    function formatOffline(user) {
+        if (!user.last_active_at) return 'Never active';
+        const seconds = Number(user.offline_seconds || 0);
+        if (seconds < 300) return 'Online now';
+        return Utils.timeAgo(user.last_active_at);
     }
 
     // --- INIT ---

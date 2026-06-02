@@ -49,6 +49,35 @@ if (!isset($_SESSION['user_ID']) || $_SESSION['role'] !== 'admin') {
         <div class="s-card"><div class="sc-label">Banned</div><div class="sc-num" id="s-banned">0</div></div>
         <div class="s-card"><div class="sc-label">Comments</div><div class="sc-num" id="s-comments">0</div></div>
         <div class="s-card"><div class="sc-label">Pending Reports</div><div class="sc-num" id="s-reports" style="color:var(--danger)">0</div></div>
+        <div class="s-card"><div class="sc-label">Active This Week</div><div class="sc-num" id="s-active-week">0</div></div>
+        <div class="s-card"><div class="sc-label">Active This Month</div><div class="sc-num" id="s-active-month">0</div></div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="tbl-card">
+          <div class="tbl-hdr with-tabs">
+            <span>Most Liked Rants</span>
+            <div class="mini-tabs" data-target="liked">
+              <button class="mini-tab active" data-period="today">Today</button>
+              <button class="mini-tab" data-period="week">Week</button>
+              <button class="mini-tab" data-period="month">Month</button>
+              <button class="mini-tab" data-period="all">All</button>
+            </div>
+          </div>
+          <div id="trend-liked"></div>
+        </div>
+
+        <div class="tbl-card">
+          <div class="tbl-hdr with-tabs">
+            <span>Active Users</span>
+            <div class="mini-tabs" data-target="active">
+              <button class="mini-tab active" data-period="week">Week</button>
+              <button class="mini-tab" data-period="month">Month</button>
+              <button class="mini-tab" data-period="all">All</button>
+            </div>
+          </div>
+          <div id="trend-active"></div>
+        </div>
       </div>
 
       <div class="tbl-card">
@@ -71,6 +100,8 @@ if (!isset($_SESSION['user_ID']) || $_SESSION['role'] !== 'admin') {
             <th>Username</th>
             <th>Role</th>
             <th>Status</th>
+            <th>Last Active</th>
+            <th>Offline For</th>
             <th>Action</th>
           </tr>
         </thead>

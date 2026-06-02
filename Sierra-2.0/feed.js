@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ════════════════════════════════════════
   function renderExplore(c) {
     c.innerHTML = `<div class="page-hdr"><h2>Explore</h2></div>
-      <div style="padding:12px 20px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text3)">Top rants in the last 24 hours</div>
+      <div style="padding:12px 20px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text3)">Top rants today</div>
       <div id="explore-feed"><div style="text-align:center;padding:20px;color:var(--text3)">Loading…</div></div>`;
     const ef = c.querySelector('#explore-feed');
     Storage.getTrendingRantsAsync().then(trending => {

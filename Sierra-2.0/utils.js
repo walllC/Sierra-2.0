@@ -3,18 +3,34 @@ const Utils = (() => {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
+  function parseDate(value) {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+
+    const normalized = String(value).trim().replace(
+      /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})$/,
+      '$1T$2'
+    );
+    const date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
   function timeAgo(isoString) {
-    const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+    const date = parseDate(isoString);
+    if (!date) return '';
+
+    const diff = Math.floor((Date.now() - date.getTime()) / 1000);
     if (diff < 10)    return 'Just now';
     if (diff < 60)    return `${diff}s`;
     if (diff < 3600)  return `${Math.floor(diff / 60)}m`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
     if (diff < 604800)return `${Math.floor(diff / 86400)}d`;
-    return new Date(isoString).toLocaleDateString();
+    return date.toLocaleDateString();
   }
 
   function isToday(isoString) {
-    const d = new Date(isoString), n = new Date();
+    const d = parseDate(isoString), n = new Date();
+    if (!d) return false;
     return d.getDate()===n.getDate() && d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear();
   }
 

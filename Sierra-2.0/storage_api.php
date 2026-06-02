@@ -131,15 +131,13 @@ switch ($action) {
   }
 
   case 'get_trending': {
-    $cutoff = date('Y-m-d H:i:s', strtotime('-24 hours'));
     $sql = "SELECT r.rant_ID,r.user_ID,r.content,r.anonymous,r.is_anonymous,r.created_at,u.username,
                    (SELECT COUNT(*) FROM reactions rx WHERE rx.rant_ID=r.rant_ID) AS react_count
             FROM rants r
             JOIN users u ON u.user_ID=r.user_ID
-            WHERE r.created_at >= ? AND u.status='active'
+            WHERE DATE(r.created_at) = CURDATE() AND u.status='active'
             ORDER BY react_count DESC LIMIT 3";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $cutoff);
     $stmt->execute();
     $res = $stmt->get_result();
     $rants = [];
