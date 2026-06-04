@@ -1,0 +1,3 @@
+# Style.css Summary
+
+This CSS file styles a social media web application ("Rantbox") with a modern, responsive design. It uses CSS custom properties for a dark/light theme system, featuring a three-column layout (sidebar, main feed, right panel) that adapts to mobile with a bottom navigation. Key components include navigation items, post cards with interactions (likes, comments, reactions), user profiles, modals, buttons, forms, toasts, and utility classes for avatars, badges, and toggles. The design emphasizes clean typography, subtle animations, and accessibility, with hover effects and transitions throughout. Total length: ~494 lines, optimized for maintainability via variables.
