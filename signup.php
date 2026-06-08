@@ -25,8 +25,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $role = 'user';
             $status = 'active';
+            $hashed = password_hash($pass, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("INSERT INTO users (username, password, role, status) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $user, $pass, $role, $status);
+            $stmt->bind_param("ssss", $user, $hashed, $role, $status);        
 
             if ($stmt->execute()) {
                 header("Location: login.php?signup=success");
