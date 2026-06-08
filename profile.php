@@ -12,10 +12,14 @@ $user_id = $_SESSION['user_ID'];
 $username = $_SESSION['username'];
 
 // Fetch user details from the database
-$stmt = $conn->prepare("SELECT role, status, created_at FROM users WHERE user_ID = ?");
+$stmt = $conn->prepare("SELECT role, status, created_at, avatar, cover, bio FROM users WHERE user_ID = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user_data = $stmt->get_result()->fetch_assoc();
+
+$avatar = $user_data['avatar'] ?? '';
+$cover  = $user_data['cover'] ?? '';
+$bio    = $user_data['bio'] ?? '';
 
 // Logout logic same as index
 if (isset($_GET['logout'])) {
@@ -30,8 +34,8 @@ if (isset($_GET['logout'])) {
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>@<?php echo htmlspecialchars($username); ?> · RantBox</title>
-  <link rel="stylesheet" href="style.css"/>
-  <link rel="stylesheet" href="profile-style.css"> </head>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+</head>
 <body>
 <div class="app">
 
@@ -47,16 +51,23 @@ if (isset($_GET['logout'])) {
 
   <main class="center-col">
     <div class="profile-header">
-      <div class="profile-banner" style="height:150px; background:var(--bg3);"></div>
+      <div class="profile-banner" style="height:150px; background:var(--bg3); background-size:cover; background-position:center;<?php if ($cover) echo ' background-image:url(\''.htmlspecialchars($cover).'\')'; ?>"></div>
       <div class="profile-info" style="padding:15px; position:relative;">
-        <div class="av lg" style="width:80px; height:80px; background:var(--accent); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:bold; border:4px solid var(--bg1); margin-top:-50px;">
-            <?php echo strtoupper(substr($username, 0, 1)); ?>
+        <div class="av lg" style="width:80px; height:80px; background:var(--accent); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:bold; border:4px solid var(--bg1); margin-top:-50px; overflow:hidden;">
+            <?php if ($avatar): ?>
+              <img src="<?php echo htmlspecialchars($avatar); ?>" alt="Profile avatar" style="width:100%; height:100%; object-fit:cover;" />
+            <?php else: ?>
+              <?php echo strtoupper(substr($username, 0, 1)); ?>
+            <?php endif; ?>
         </div>
         <h2 style="margin-top:10px;">@<?php echo htmlspecialchars($username); ?></h2>
         <p style="color:var(--text3);">Joined <?php echo date("F Y", strtotime($user_data['created_at'])); ?></p>
         <div class="badge" style="display:inline-block; padding:4px 8px; border-radius:4px; font-size:12px; background:var(--bg2);">
             <?php echo strtoupper($user_data['role']); ?>
         </div>
+      </div>
+      <div style="padding:0 15px 16px; color:var(--text2);">
+        <?php echo htmlspecialchars($bio ?: 'No bio yet.'); ?>
       </div>
     </div>
 
@@ -72,7 +83,14 @@ if (isset($_GET['logout'])) {
 
 <script src="assets/js/utils.js"></script>
 <script>
-    const currentProfileUser = "<?php echo $username; ?>";
+    const phpUser = {
+        username: "<?php echo htmlspecialchars($username); ?>",
+        userId: <?php echo (int)$user_id; ?>,
+        role: "<?php echo htmlspecialchars($user_data['role'] ?? 'user'); ?>"
+    };
+    localStorage.setItem('rantbox_session', JSON.stringify(phpUser));
+    window.userFromPHP = phpUser;
+    const currentProfileUser = "<?php echo htmlspecialchars($username); ?>";
 </script>
 <script src="assets/js/feed.js"></script> 
 </body>

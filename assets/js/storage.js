@@ -232,6 +232,9 @@ const Storage = (() => {
   /** Fetches all rants authored by a specific user. */
   async function getRantsByUserAsync(username) { return get('get_rants_by_user', { username }); }
 
+  /** Fetches all archived rants for the current user. */
+  async function getArchivedRantsAsync()        { return get('get_archived_rants'); }
+
   /** Fetches the trending rants list (server calculates trending score). */
   async function getTrendingRantsAsync()       { return get('get_trending'); }
 

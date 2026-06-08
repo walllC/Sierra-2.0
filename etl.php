@@ -3,7 +3,7 @@
 // ETL SCRIPT: echowall → echowall_olap
 // File: etl.php
 // Place in your project root
-// Run manually: visit localhost/rantbox/Sierra-2.0/etl.php
+// Run manually: visit http://localhost/EchoWall/etl.php
 // ============================================================
 
 // --- SECURITY: only admin can run ETL ---

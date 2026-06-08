@@ -21,27 +21,27 @@ A social media web application where users can post rants, react, comment, and i
 ## Installation & Setup
 
 ### 1. Clone the repository
-git clone https://github.com/walllC/Sierra-2.0.git
+git clone <repository-url>
 
 ### 2. Move to XAMPP's htdocs
-Place the project folder inside: 
+Place the project folder inside XAMPP's `htdocs` folder.
 
 ### 3. Import the database
 - Open phpMyAdmin at http://localhost/phpmyadmin
-- Create a new database named echowall
-- Click Import and upload echowall.sql
-- Create another database named echowall_olap
-- Import echowall_olap.sql
+- Create a new database named `echowall`
+- Click Import and upload `echowall.sql`
+- Create another database named `echowall_olap`
+- Import `echowall_olap.sql`
 
 ### 4. Configure the database
-Open database.php and make sure the credentials match:
+Open `database.php` and make sure the credentials match:
 $conn = new mysqli('localhost', 'root', '', 'echowall');
 
 ### 5. Start XAMPP
 - Start Apache and MySQL in the XAMPP Control Panel
 
 ### 6. Open the app
-Go to: http://localhost/rantbox/Sierra-2.0/
+Go to: http://localhost/EchoWall/
 
 ---
 
@@ -78,7 +78,7 @@ Go to: http://localhost/rantbox/Sierra-2.0/
 ---
 
 ## Admin Panel
-Access at http://localhost/echowall/Sierra-2.0/admin.php
+Access at http://localhost/EchoWall/admin.php
 - Login as *Sierra_Admin*
 - View analytics, manage users, rants, comments, and reports
 - Sync OLAP data via the *Sync OLAP Data* button
@@ -87,7 +87,7 @@ Access at http://localhost/echowall/Sierra-2.0/admin.php
 ## Project Structure 
 
 ```text
-Sierra-2.0/
+EchoWall/
 ├── api/                        # PHP API endpoints
 ├── assets/
 │   ├── css/                    # Stylesheets

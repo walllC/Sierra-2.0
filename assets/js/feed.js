@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sl.innerHTML = (suggested && suggested.length)
           ? suggested.map(u => `
               <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
-                <div class="av sm go-av" style="background:${Utils.getAvatarColor(u.username)};cursor:pointer" data-go="${u.username}">${Utils.getInitials(u.username)}</div>
+                ${u.avatar ? `<img src="${u.avatar}" class="av-img go-av" style="width:32px;height:32px;border-radius:50%;object-fit:cover;cursor:pointer" data-go="${u.username}" alt="@${Utils.escapeHtml(u.username)}'s avatar">` : `<div class="av sm go-av" style="background:${Utils.getAvatarColor(u.username)};cursor:pointer" data-go="${u.username}">${Utils.getInitials(u.username)}</div>`}
                 <div style="flex:1;min-width:0">
                   <div style="font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="go-profile" data-go="${u.username}">@${Utils.escapeHtml(u.username)}</div>
                   ${u.mutuals ? `<div style="font-size:11px;color:var(--text3)">${u.mutuals} mutual</div>` : ''}
@@ -533,7 +533,10 @@ document.addEventListener('DOMContentLoaded', () => {
         res.innerHTML += `<div style="padding:10px 20px 4px;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">People</div>`;
         users.forEach(u => {
           const row = document.createElement('div'); row.className = 'follow-list-item';
-          row.innerHTML = `<div class="av sm" style="background:${Utils.getAvatarColor(u.username)}">${Utils.getInitials(u.username)}</div>
+          const avatarHtml = u.avatar
+            ? `<img src="${u.avatar}" class="av-img" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" alt="@${Utils.escapeHtml(u.username)}'s avatar">`
+            : `<div class="av sm" style="background:${Utils.getAvatarColor(u.username)}">${Utils.getInitials(u.username)}</div>`;
+          row.innerHTML = `${avatarHtml}
             <div class="follow-list-info"><div class="fl-name">@${Utils.escapeHtml(u.username)}</div><div class="fl-handle">${Utils.escapeHtml(u.bio || 'No bio')}</div></div>`;
           row.addEventListener('click', () => render('userprofile', { username: u.username }));
           res.appendChild(row);
@@ -688,6 +691,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="inbox-preview" style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Say hi!</div>
           </div>`;
 
+        // Replace avatar with uploaded photo if available.
+        Storage.getUserByUsernameAsync(u).then(user => {
+          if (user?.avatar) {
+            const av = item.querySelector('.av.sm');
+            if (av) av.outerHTML = `<img src="${user.avatar}" class="av-img" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" alt="@${Utils.escapeHtml(u)}'s avatar">`;
+          }
+        });
+
         // Populate last message preview
         Storage.getLastMessageAsync(u).then(last => {
           const preview = item.querySelector('.inbox-preview');
@@ -739,6 +750,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <input id="chat-in" type="text" placeholder="Message @${Utils.escapeHtml(toUser)}…" maxlength="500" style="flex:1"/>
             <button class="btn btn-primary btn-sm" id="chat-send">Send</button>
           </div>`;
+
+        Storage.getUserByUsernameAsync(toUser).then(user => {
+          if (user?.avatar) {
+            const av = chatArea.querySelector('.av.sm');
+            if (av) av.outerHTML = `<img src="${user.avatar}" class="av-img" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" alt="@${Utils.escapeHtml(toUser)}'s avatar">`;
+          }
+        });
 
         // "View Profile" button in chat header
         chatArea.querySelector('#view-prof-btn').addEventListener('click', () => render('userprofile', { username: toUser }));
@@ -1107,10 +1125,11 @@ document.addEventListener('DOMContentLoaded', () => {
        */
       function loadArchivedRants() {
         pf.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Loading…</div>';
-        fetch('storage_api.php?action=get_archived_rants')
-          .then(r => r.json())
+        Storage.getArchivedRantsAsync()
           .then(rants => {
-            if (!Array.isArray(rants)) rants = [];
+            if (!Array.isArray(rants)) {
+              throw new Error(rants?.error || 'Unexpected archived rants response');
+            }
             pf.innerHTML = '';
             if (!rants.length) {
               pf.innerHTML = `<div class="empty"><div class="e-icon">🗃️</div><p>No archived rants.</p></div>`;
@@ -1118,7 +1137,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             rants.forEach(r => {
               const card = buildCard(r, false);
-              // Append an Unarchive button to each card's action bar
               const actions = card.querySelector('.post-actions');
               if (actions) {
                 const unBtn = document.createElement('button');
@@ -1133,16 +1151,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     .then(res => res.json())
                     .then(data => {
                       if (data.success) { card.remove(); Utils.showToast('Rant unarchived!', 'success'); }
-                      else Utils.showToast('Failed to unarchive', 'error');
-                    });
+                      else Utils.showToast(`Failed to unarchive: ${data.error || 'Unknown error'}`, 'error');
+                    })
+                    .catch(() => Utils.showToast('Network error unarchiving rant', 'error'));
                 });
                 actions.appendChild(unBtn);
               }
               pf.appendChild(card);
             });
           })
-          .catch(() => {
-            pf.innerHTML = `<div class="empty"><div class="e-icon">⚠️</div><p>Error loading archived rants.</p></div>`;
+          .catch(err => {
+            console.error('Archived rants error:', err);
+            pf.innerHTML = `<div class="empty"><div class="e-icon">⚠️</div><p>${Utils.escapeHtml(err.message || 'Error loading archived rants.')}</p></div>`;
           });
       }
 
@@ -1731,13 +1751,14 @@ document.addEventListener('DOMContentLoaded', () => {
    * @returns {HTMLElement}
    */
   function buildCard(rant, readOnly = false) {
-    const isOwn    = rant.username === ME.username;
-    const isAnon   = !!rant.anonymous;
+    const isOwn      = rant.username === ME.username;
+    const isAnon     = !!rant.anonymous;
+    const isArchived = !!rant.is_archived || !!rant.isArchived;
     // Show real username only if: not anon, OR it's the user's own anon post, OR viewer is admin
-    const showReal = !isAnon || isOwn || ME.role === 'admin';
-    const dispName  = showReal ? rant.username : 'Anonymous';
-    const dispColor = showReal ? Utils.getAvatarColor(rant.username) : '#444455';
-    const reactions         = rant.reactions || {};
+    const showReal   = !isAnon || isOwn || ME.role === 'admin';
+    const dispName    = showReal ? rant.username : 'Anonymous';
+    const dispColor   = showReal ? Utils.getAvatarColor(rant.username) : '#444455';
+    const reactions   = rant.reactions || {};
     const initialReactIcon  = rant.user_reaction || '😊';
     const rantId            = rant.id || rant.rant_ID;
     const totalComments     = rant.comment_count || 0;
@@ -1799,7 +1820,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="a-icon">💬</span><span class="comment-count">${totalComments || ''}</span>
         </button>
         ${!isAnon ? `<button class="action-btn repost-btn" data-id="${rantId}" title="Repost"><span class="a-icon">🔁</span></button>` : ''}
-        ${!readOnly && isOwn ? `<button class="action-btn edit-btn"><span class="a-icon">✏️</span></button><button class="action-btn archive-btn" title="Archive"><span class="a-icon">🗃️</span></button><button class="action-btn del-act"><span class="a-icon">🗑️</span></button>` : ''}
+        ${!readOnly && isOwn ? (isArchived
+            ? `<button class="action-btn del-act"><span class="a-icon">🗑️</span></button>`
+            : `<button class="action-btn edit-btn"><span class="a-icon">✏️</span></button><button class="action-btn archive-btn" title="Archive"><span class="a-icon">🗃️</span></button><button class="action-btn del-act"><span class="a-icon">🗑️</span></button>`)
+          : ''}
         ${!isOwn ? `<button class="action-btn report-btn" data-id="${rantId}" title="Report" style="margin-left:auto"><span class="a-icon">🚩</span></button>` : ''}
       </div>
       <!-- Inline edit form (hidden by default) -->

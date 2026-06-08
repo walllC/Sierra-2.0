@@ -39,7 +39,7 @@ const Auth = (() => {
     return { ok: true, user: u };
   }
 
-  function logout() { Storage.clearSession(); window.location.href = 'login.php'; }
+  function logout() { Storage.clearSession(); }
 
   function seedAdmin() {
     if (!Storage.getUserByUsername('admin')) {

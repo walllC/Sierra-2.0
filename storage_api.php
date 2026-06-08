@@ -196,7 +196,7 @@ switch ($action) {
    */
   case 'get_trending': {
     $sql = "SELECT r.rant_ID, r.user_ID, r.content, r.anonymous,
-                   r.is_anonymous, r.created_at, u.username,
+                   r.is_anonymous, r.created_at, u.username, u.avatar,
                    (SELECT COUNT(*) FROM reactions rx
                     WHERE rx.rant_ID = r.rant_ID) AS react_count
             FROM rants r
@@ -896,7 +896,8 @@ switch ($action) {
   case 'get_archived_rants': {
     $sql = "SELECT r.rant_ID, r.user_ID, r.content, r.anonymous,
                    r.created_at, r.updated_at, r.repost_of_id, r.repost_of_user,
-                   u.username,
+                   r.is_archived,
+                   u.username, u.avatar,
                    (SELECT COUNT(*) FROM comments c
                     WHERE c.rant_ID = r.rant_ID) AS comment_count
             FROM rants r

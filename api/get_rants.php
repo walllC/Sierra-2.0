@@ -27,7 +27,7 @@ try {
     END as content,
     {$anonColumn} as anonymous,
     r.repost_of_id, r.repost_of_user,
-    {$createdColumn}, {$updatedColumn}, u.username,
+    {$createdColumn}, {$updatedColumn}, u.username, u.avatar,
     COUNT(DISTINCT c.comment_ID) as comment_count,
     (r.repost_of_id IS NOT NULL AND (original.rant_ID IS NULL OR original.is_archived = 1)) as is_original_deleted
     FROM rants r 

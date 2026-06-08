@@ -1,0 +1,6 @@
+# Redirect old Sierra-2.0 URLs to the current EchoWall root
+RewriteEngine On
+RewriteBase /EchoWall/
+
+# If the old Sierra-2.0 path is visited, redirect to the new root
+RewriteRule ^Sierra-2\.0/(.*)$ /EchoWall/$1 [R=301,L]
