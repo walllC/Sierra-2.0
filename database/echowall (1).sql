@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 08, 2026 at 06:12 AM
+-- Generation Time: Jun 08, 2026 at 01:10 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -191,7 +191,8 @@ INSERT INTO `rants` (`rant_ID`, `user_ID`, `content`, `anonymous`, `is_anonymous
 (51, 8, 'test anon', 1, 0, '2026-06-06 13:19:38', NULL, NULL, NULL, 0),
 (52, 8, 'test anon 1', 1, 0, '2026-06-06 13:19:46', NULL, NULL, NULL, 0),
 (53, 8, 'test anon 2', 1, 0, '2026-06-06 13:19:51', NULL, NULL, NULL, 0),
-(54, 8, 'test anon 3', 1, 0, '2026-06-06 13:19:57', NULL, NULL, NULL, 0);
+(54, 8, 'test anon 3', 1, 0, '2026-06-06 13:19:57', NULL, NULL, NULL, 0),
+(55, 10, 'whahaha', 0, 0, '2026-06-08 11:02:32', NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -216,7 +217,10 @@ INSERT INTO `reactions` (`reaction_ID`, `rant_ID`, `user_ID`, `type`) VALUES
 (179, 43, 8, '❤️'),
 (180, 45, 7, '❤️'),
 (177, 45, 8, '😂'),
-(183, 50, 6, '😢');
+(183, 50, 6, '😢'),
+(186, 53, 10, '😢'),
+(185, 54, 10, '😡'),
+(188, 55, 10, '😢');
 
 -- --------------------------------------------------------
 
@@ -257,10 +261,12 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_ID`, `username`, `password`, `role`, `status`, `avatar`, `bio`, `created_at`, `last_active_at`, `theme`, `cover`) VALUES
-(5, 'Sierra_Admin', '123456', 'admin', 'active', NULL, NULL, '2026-05-29 02:16:46', '2026-06-08 12:05:24', 'dark', NULL),
-(6, 'test_user', '111111', 'user', 'active', 'uploads/avatar_6_1780557923.jpg', '', '2026-06-01 11:19:10', '2026-06-08 12:10:14', 'dark', 'uploads/cover_6_1780557929.jpg'),
-(7, 'ashley', '111111', 'user', 'active', NULL, NULL, '2026-06-01 11:23:02', '2026-06-01 20:53:00', 'dark', NULL),
-(8, 'carline', '111111', 'user', 'active', NULL, NULL, '2026-06-01 12:31:50', '2026-06-06 21:19:57', 'dark', NULL);
+(5, 'Sierra_Admin', '$2y$10$k/YQSmixUE3.r7KYMh4tpeg6iVCNYrkJaNTMPmkN7idy0hvRPQBRS', 'admin', 'active', NULL, NULL, '2026-05-29 02:16:46', '2026-06-08 18:02:09', 'dark', NULL),
+(6, 'test_user', '$2y$10$VDNMu4Dsz3B4Rx11cJs4A.VKFlGzvE5Ulkv1fJ3DBQRDzw3KJjdCe', 'user', 'active', 'uploads/avatar_6_1780557923.jpg', '', '2026-06-01 11:19:10', '2026-06-08 18:21:36', 'dark', 'uploads/cover_6_1780557929.jpg'),
+(7, 'ashley', '$2y$10$F6DqvBE30vSq0YaVZZ/hxuUsckHtz8q.k7q4NuFcTXU6pqb4ZJzfq', 'user', 'active', NULL, NULL, '2026-06-01 11:23:02', '2026-06-01 20:53:00', 'dark', NULL),
+(8, 'carline', '$2y$10$lWaqD5X8dZ5tIjdPHBtzoubwd8vAGugKug65nx/qG6KPguDLz4SFa', 'user', 'active', NULL, NULL, '2026-06-01 12:31:50', '2026-06-08 18:55:23', 'dark', NULL),
+(9, 'test_pass', '$2y$10$HQvwLS6.UwysH3zrcsaaH.rp7043UIzAcGsnyyNJaoBaV1PfXAx42', 'user', 'active', NULL, NULL, '2026-06-08 04:59:25', '2026-06-08 12:59:32', 'dark', NULL),
+(10, 'another', '$2y$10$KebkytUhN/TwaWht/TxaTe7G9NrNq/bE7lBxc.pNmlSYNEm.9dH8O', 'user', 'active', NULL, NULL, '2026-06-08 10:56:50', '2026-06-08 19:08:34', 'dark', NULL);
 
 --
 -- Indexes for dumped tables
@@ -389,13 +395,13 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `rants`
 --
 ALTER TABLE `rants`
-  MODIFY `rant_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `rant_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `reactions`
 --
 ALTER TABLE `reactions`
-  MODIFY `reaction_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=184;
+  MODIFY `reaction_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
 
 --
 -- AUTO_INCREMENT for table `reports`
@@ -407,7 +413,7 @@ ALTER TABLE `reports`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `user_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Constraints for dumped tables

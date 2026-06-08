@@ -174,7 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="trend-item" data-id="${r.rant_ID}" style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer">
                 <div style="font-weight:600;font-size:13px">@${Utils.escapeHtml(r.anonymous ? 'Anonymous' : r.username)}</div>
                 <div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${Utils.escapeHtml(r.content)}</div>
-                <div style="font-size:11px;color:var(--text3);margin-top:2px">❤️ ${(r.likes || []).length}</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px">
+                ❤️ ${Object.values(r.reactions || {}).reduce((a, b) => a + b, 0)}
+                </div>
               </div>`).join('')
           : '<p style="font-size:13px;color:var(--text3)">No trending rants yet.</p>';
       });

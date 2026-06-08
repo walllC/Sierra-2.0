@@ -147,7 +147,8 @@ switch ($action) {
       $fields[] = 'theme=?'; $types .= 's'; $vals[] = $t;
     }
     if (isset($_POST['password'])) {
-      $fields[] = 'password=?'; $types .= 's'; $vals[] = $_POST['password'];
+    $hashed = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $fields[] = 'password=?'; $types .= 's'; $vals[] = $hashed;
     }
 
     // Reject the request if no recognised field was included.
@@ -200,7 +201,7 @@ switch ($action) {
                     WHERE rx.rant_ID = r.rant_ID) AS react_count
             FROM rants r
             JOIN users u ON u.user_ID = r.user_ID
-            WHERE DATE(r.created_at) = CURDATE()
+            WHERE r.created_at >= NOW() - INTERVAL 24 HOUR
               AND u.status = 'active'
             ORDER BY react_count DESC
             LIMIT 3";
