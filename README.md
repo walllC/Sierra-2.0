@@ -86,54 +86,40 @@ Access at http://localhost/echowall/Sierra-2.0/admin.php
 
 ## Project Structure 
 
+```text
 Sierra-2.0/
-├── api/                      ← PHP API endpoints
-│   ├── admin_delete_comment.php
-│   ├── admin_delete_rant.php
-│   ├── admin_delete_user_data.php
-│   ├── admin_dismiss_report.php
-│   ├── admin_get_comments.php
-│   ├── admin_get_rants.php
-│   ├── admin_get_reports.php
-│   ├── admin_get_stats.php
-│   ├── admin_get_users.php
-│   ├── admin_update_user.php
-│   ├── check_admin.php
-│   ├── delete_rant.php
-│   ├── get_notifications.php
-│   ├── get_rants.php
-│   ├── get_reactions.php
-│   └── save_reaction.php
+├── api/                        # PHP API endpoints
 ├── assets/
-│   ├── css/                  ← Stylesheets
-│   └── js/                   ← JavaScript files
-├── database/                 ← Database SQL files
-├── tcpdf/                    ← PDF generation library
-├── tests/                    ← Test files
-├── uploads/                  ← User uploaded images
-├── admin.php                 ← Admin panel
-├── database.php              ← Database connection
-├── delete_comment.php        ← Delete comment handler
-├── edit_rant.php             ← Edit rant handler
-├── etl.php                   ← OLAP sync handler
-├── export_pdf.php            ← PDF export handler
-├── get_chart_data.php        ← OLAP chart data
-├── get_comments.php          ← Get comments handler
-├── get_stats.php             ← Stats handler
-├── index.php                 ← Main app entry
-├── login.php                 ← Login page
-├── login_process.php         ← Login handler
-├── profile.php               ← Profile page
-├── report_rant.php           ← Report rant handler
-├── save_comment.php          ← Save comment handler
-├── save_comment_reaction.php ← Comment reaction handler
-├── save_notification.php     ← Notification handler
-├── save_rant.php             ← Save rant handler
-├── signup.php                ← Registration page
-├── storage_api.php           ← Storage API handler
-├── terms.php                 ← Terms page
-├── upload_image.php          ← Image upload handler
-└── README.md                 ← This file  
+│   ├── css/                    # Stylesheets
+│   └── js/                     # JavaScript files
+├── database/                   # Database SQL files
+├── tcpdf/                      # PDF generation library
+├── tests/                      # Test files
+├── uploads/                    # User uploaded images
+│
+├── admin.php                   # Admin panel
+├── database.php                # Database connection
+├── delete_comment.php          # Delete comment handler
+├── edit_rant.php               # Edit rant handler
+├── etl.php                     # OLAP sync handler
+├── export_pdf.php              # PDF export handler
+├── get_chart_data.php          # OLAP chart data
+├── get_comments.php            # Get comments handler
+├── get_stats.php               # Stats handler
+├── index.php                   # Main app entry
+├── login.php                   # Login page
+├── login_process.php           # Login handler
+├── profile.php                 # Profile page
+├── report_rant.php             # Report rant handler
+├── save_comment.php            # Save comment handler
+├── save_comment_reaction.php   # Comment reaction handler
+├── save_notification.php       # Notification handler
+├── save_rant.php               # Save rant handler
+├── signup.php                  # Registration page
+├── storage_api.php             # Storage API handler
+├── terms.php                   # Terms page
+├── upload_image.php            # Image upload handler
+└── README.md                   # This file  
 
 ---
 
