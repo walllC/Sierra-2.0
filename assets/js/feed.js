@@ -382,11 +382,13 @@ document.addEventListener('DOMContentLoaded', () => {
             (!r.anonymous && r.username.toLowerCase().includes(q.toLowerCase()))
           );
 
-          // "Following" tab: only show rants from followed users + own rants
+          // "Following" tab: only show rants from followed users + own rants 
           if (activeTab === 'following') {
             Storage.getFollowingAsync(ME.username).then(following => {
               following = following || [];
-              const filtered = rants.filter(r => following.includes(r.username) || r.user_ID === ME.user_ID);
+              const filtered = rants.filter(r => 
+              (following.includes(r.username) && !r.anonymous) || r.user_ID === ME.user_ID
+              );
               feedEl.innerHTML = '';
               if (!filtered.length) {
                 feedEl.innerHTML = `<div class="empty"><div class="e-icon">💬</div><p>Follow someone to see their rants!</p></div>`;
@@ -503,9 +505,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const blocked = Storage.getBlockedUsers(ME.username);
 
       const [allUsers, allRants] = await Promise.all([
-        Storage.getUsersAsync(),
-        Storage.getRantsAsync()
-      ]);
+  fetch('storage_api.php?action=get_users').then(r => r.json()).catch(() => []),
+  fetch('api/get_rants.php').then(r => r.json()).catch(() => [])
+]);
 
       // Filter users: exclude admins, blocked, and non-matching
       const users = (allUsers || []).filter(u =>

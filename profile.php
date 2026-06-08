@@ -70,10 +70,10 @@ if (isset($_GET['logout'])) {
 
 </div>
 
-<script src="utils.js"></script>
+<script src="assets/js/utils.js"></script>
 <script>
     const currentProfileUser = "<?php echo $username; ?>";
 </script>
-<script src="feed.js"></script> 
+<script src="assets/js/feed.js"></script> 
 </body>
 </html>

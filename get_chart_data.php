@@ -33,13 +33,14 @@ ORDER BY dt.full_date ASC
 elseif ($type === 'top_users') {
     // Top 5 most active users by rant count
     $result = $conn->query("
-        SELECT du.username, COUNT(*) as total
-FROM fact_rants fr
-JOIN dim_user du ON fr.user_key = du.user_key
-GROUP BY du.user_key
-ORDER BY total DESC
-LIMIT 5
-    ");
+    SELECT du.username, COUNT(*) as total
+    FROM fact_rants fr
+    JOIN dim_user du ON fr.user_key = du.user_key
+    WHERE du.role != 'admin'
+    GROUP BY du.user_key
+    ORDER BY total DESC
+    LIMIT 5
+");
     $labels = [];
     $data = [];
     while ($row = $result->fetch_assoc()) {

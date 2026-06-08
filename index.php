@@ -1,22 +1,19 @@
 <?php
 session_start();
 
-// 1. GATEKEEPER: If the user isn't logged in, redirect to login page
 if (!isset($_SESSION['user_ID'])) {
     header("Location: login.php");
     exit();
 }
 
-// 2. LOGOUT LOGIC: If the URL has ?logout=true, destroy session
 if (isset($_GET['logout'])) {
     session_destroy();
     header("Location: login.php");
     exit();
 }
 
-// Get the logged-in user's name from the session
 $username = $_SESSION['username'];
-$userId = $_SESSION['user_ID'];  // 🔥 ADDED USER ID
+$userId = $_SESSION['user_ID'];
 $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
 ?>
 <!DOCTYPE html>
@@ -25,9 +22,11 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RantBox</title>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
 
-  <!-- 🔥 REACTIONS CSS -->
+  <!-- ✅ Font Awesome 6 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
+
   <style>
     .rant { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 8px; background: white; }
     .reactions-bar { margin: 10px 0; font-size: 14px; color: #666; }
@@ -46,7 +45,7 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
   <script>
     const phpUser = {
         username: "<?php echo $username; ?>",
-        userId: <?php echo $userId; ?>,  // 🔥 ADDED
+        userId: <?php echo $userId; ?>,
         role: "<?php echo $role; ?>"
     };
     localStorage.setItem('rantbox_session', JSON.stringify(phpUser));
@@ -54,37 +53,50 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
   </script>
 </head>
 <body>
-<!-- YOUR EXISTING HTML EXACTLY SAME -->
 <div class="app">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">RantBox</div>
-    <button class="nav-item active" data-page="home"><span class="ni">🏠</span><span>Home</span></button>
-    <button class="nav-item" data-page="explore"><span class="ni">🔥</span><span>Explore</span></button>
-    <button class="nav-item" data-page="search"><span class="ni">🔍</span><span>Search</span></button>
+
+    <button class="nav-item active" data-page="home">
+      <span class="ni"><i class="fa-solid fa-house"></i></span><span>Home</span>
+    </button>
+    <button class="nav-item" data-page="explore">
+      <span class="ni"><i class="fa-solid fa-fire-flame-curved"></i></span><span>Explore</span>
+    </button>
+    <button class="nav-item" data-page="search">
+      <span class="ni"><i class="fa-solid fa-magnifying-glass"></i></span><span>Search</span>
+    </button>
     <button class="nav-item" data-page="notifications">
-      <span class="ni">🔔</span><span>Notifications</span>
+      <span class="ni"><i class="fa-solid fa-bell"></i></span><span>Notifications</span>
       <span class="badge-dot" id="notif-dot"></span>
       <span class="badge-num" id="notif-num"></span>
     </button>
     <button class="nav-item" data-page="messages">
-      <span class="ni">💬</span><span>Messages</span>
+      <span class="ni"><i class="fa-solid fa-message"></i></span><span>Messages</span>
       <span class="badge-dot" id="msg-dot"></span>
       <span class="badge-num" id="msg-num"></span>
     </button>
-    
-    <button class="nav-item" data-page="profile"><span class="ni">👤</span><span>Profile</span></button>
-    <button class="nav-item" data-page="settings"><span class="ni">⚙️</span><span>Settings</span></button>
+    <button class="nav-item" data-page="profile">
+      <span class="ni"><i class="fa-solid fa-user"></i></span><span>Profile</span>
+    </button>
+    <button class="nav-item" data-page="settings">
+      <span class="ni"><i class="fa-solid fa-gear"></i></span><span>Settings</span>
+    </button>
 
     <?php if($role === 'admin'): ?>
-      <button class="nav-item" onclick="window.location.href='admin.php'"><span class="ni">🛡️</span><span>Admin</span></button>
+      <button class="nav-item" onclick="window.location.href='admin.php'">
+        <span class="ni"><i class="fa-solid fa-shield-halved"></i></span><span>Admin</span>
+      </button>
     <?php endif; ?>
 
     <div class="sidebar-divider"></div>
-    <button class="sidebar-post-btn" id="focus-compose">＋ Post Rant</button>
+    <button class="sidebar-post-btn" id="focus-compose">
+      <i class="fa-solid fa-plus"></i> Post Rant
+    </button>
 
     <a href="index.php?logout=true" style="text-decoration:none;">
       <button class="nav-item" style="color:var(--danger); margin-top:10px;">
-        <span class="ni">🚪</span><span>Logout</span>
+        <span class="ni"><i class="fa-solid fa-right-from-bracket"></i></span><span>Logout</span>
       </button>
     </a>
 
@@ -99,32 +111,40 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
     </div>
   </aside>
 
-  <!-- 🔥 FEED CONTAINER -->
   <main class="center-col" id="center">
-    <div id="feed-container">
-      <!-- RANTS LOAD HERE -->
-    </div>
+    <div id="feed-container"></div>
   </main>
 
   <aside class="right-col">
-    <div class="right-box"><h3>🔥 Trending</h3><div id="trending-list">Loading…</div></div>
-    <div class="right-box"><h3>Who to follow</h3><div id="suggested-list"></div></div>
+    <div class="right-box">
+      <h3><i class="fa-solid fa-fire-flame-curved"></i> Trending</h3>
+      <div id="trending-list">Loading…</div>
+    </div>
+    <div class="right-box">
+      <h3><i class="fa-solid fa-user-plus"></i> Who to follow</h3>
+      <div id="suggested-list"></div>
+    </div>
   </aside>
 </div>
 
-<!-- YOUR EXISTING MODALS/NAV EXACTLY SAME -->
 <nav class="bottom-nav">
-  <button class="bn-item active" data-page="home"><span class="bn-icon">🏠</span><span>Home</span></button>
-  <button class="bn-item" data-page="explore"><span class="bn-icon">🔥</span><span>Explore</span></button>
+  <button class="bn-item active" data-page="home">
+    <span class="bn-icon"><i class="fa-solid fa-house"></i></span><span>Home</span>
+  </button>
+  <button class="bn-item" data-page="explore">
+    <span class="bn-icon"><i class="fa-solid fa-fire-flame-curved"></i></span><span>Explore</span>
+  </button>
   <button class="bn-item" data-page="notifications">
-    <span class="bn-icon">🔔</span><span>Notifs</span>
+    <span class="bn-icon"><i class="fa-solid fa-bell"></i></span><span>Notifs</span>
     <span class="bn-dot" id="notif-dot-bn"></span>
   </button>
   <button class="bn-item" data-page="messages">
-    <span class="bn-icon">💬</span><span>DMs</span>
+    <span class="bn-icon"><i class="fa-solid fa-message"></i></span><span>DMs</span>
     <span class="bn-dot" id="msg-dot-bn"></span>
   </button>
-  <button class="bn-item" data-page="profile"><span class="bn-icon">👤</span><span>Profile</span></button>
+  <button class="bn-item" data-page="profile">
+    <span class="bn-icon"><i class="fa-solid fa-user"></i></span><span>Profile</span>
+  </button>
 </nav>
 
 <div class="modal-overlay" id="rant-modal">
@@ -141,9 +161,9 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
   </div>
 </div>
 
-<script src="utils.js"></script>
-<script src="storage.js"></script>
-<script src="auth.js"></script>
-<script src="feed.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/feed.js"></script>
 </body>
 </html>

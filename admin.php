@@ -18,8 +18,8 @@ if (!isset($_SESSION['user_ID']) || $_SESSION['role'] !== 'admin') {
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Admin · RantBox</title>
-    <link rel="stylesheet" href="style.css"/>
-    <link rel="stylesheet" href="admin-style.css"/>
+    <link rel="stylesheet" href="assets/css/style.css"/>
+<link rel="stylesheet" href="assets/css/admin-style.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
@@ -262,7 +262,7 @@ async function initCharts() {
 initCharts();
 </script>
 
-<script src="utils.js"></script>
-<script src="admin.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/admin.js"></script>
 </body>
 </html>

@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td><span class="badge" data-val="${user.status}">${user.status}</span></td>
                 <td>${user.last_active_at ? formatDate(user.last_active_at) : 'Never'}</td>
                 <td>${formatOffline(user)}</td>
-                <td><button class="btn btn-xs ban-btn">${user.status === 'banned' ? 'Unban' : 'Ban'}</button></td>`;
+                <td>${user.role === 'admin' ? '—' : `<button class="btn btn-xs ban-btn">${user.status === 'banned' ? 'Unban' : 'Ban'}</button>`}</td>`;
 
             tr.querySelector('.ban-btn').addEventListener('click', async () => {
                 const newStatus = user.status === 'banned' ? 'active' : 'banned';

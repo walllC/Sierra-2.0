@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 07, 2026 at 11:22 AM
+-- Generation Time: Jun 08, 2026 at 06:12 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -89,7 +89,8 @@ CREATE TABLE `follows` (
 INSERT INTO `follows` (`follow_ID`, `follower`, `following`, `created_at`) VALUES
 (3, 'edrian', 'perrin', '2026-05-23 17:19:08'),
 (4, 'perrin', 'edrian', '2026-05-24 10:12:03'),
-(5, 'tite', 'ashley', '2026-06-07 09:12:21');
+(5, 'tite', 'ashley', '2026-06-07 09:12:21'),
+(6, 'test_user', 'ashley', '2026-06-08 03:37:08');
 
 -- --------------------------------------------------------
 
@@ -105,6 +106,13 @@ CREATE TABLE `messages` (
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `messages`
+--
+
+INSERT INTO `messages` (`message_ID`, `from_user`, `to_user`, `msg_text`, `is_read`, `created_at`) VALUES
+(2, 'test_user', 'ashley', 'hey', 0, '2026-06-08 03:32:51');
 
 -- --------------------------------------------------------
 
@@ -137,7 +145,10 @@ INSERT INTO `notifications` (`notif_ID`, `from_user_ID`, `to_user_ID`, `type`, `
 (24, 7, 6, 'reaction', 'reacted ❤️ to your rant.', 45, NULL, '2026-06-01 12:52:56', 1),
 (25, 6, 8, 'reaction', 'reacted 😂 to your rant.', 50, NULL, '2026-06-04 09:06:30', 0),
 (26, 6, 7, 'follow', 'started following you.', NULL, NULL, '2026-06-07 09:12:21', 0),
-(27, 6, 7, 'reaction', 'reacted 😡 to your rant.', 40, NULL, '2026-06-07 09:14:46', 0);
+(27, 6, 7, 'reaction', 'reacted 😡 to your rant.', 40, NULL, '2026-06-07 09:14:46', 0),
+(28, 6, 8, 'reaction', 'reacted 😢 to your rant.', 50, NULL, '2026-06-08 03:31:01', 0),
+(29, 6, 7, 'message', 'sent you a message.', NULL, NULL, '2026-06-08 03:32:51', 0),
+(30, 6, 7, 'follow', 'started following you.', NULL, NULL, '2026-06-08 03:37:08', 0);
 
 -- --------------------------------------------------------
 
@@ -165,18 +176,17 @@ CREATE TABLE `rants` (
 INSERT INTO `rants` (`rant_ID`, `user_ID`, `content`, `anonymous`, `is_anonymous`, `created_at`, `repost_of_id`, `repost_of_user`, `updated_at`, `is_archived`) VALUES
 (36, 6, 'FIRST EVER POST', 0, 0, '2026-06-01 03:19:24', NULL, NULL, NULL, 0),
 (37, 6, '2ND POST', 1, 0, '2026-06-01 03:19:36', NULL, NULL, NULL, 0),
-(38, 5, 'tado', 0, 0, '2026-06-01 03:20:59', NULL, NULL, NULL, 0),
 (39, 6, 'ANON ITO', 1, 0, '2026-06-01 03:21:56', NULL, NULL, NULL, 0),
 (40, 7, 'post ni ash', 0, 0, '2026-06-01 03:27:48', NULL, NULL, NULL, 0),
 (41, 6, 'POST CHECK', 0, 0, '2026-06-01 11:47:10', NULL, NULL, NULL, 0),
 (42, 6, 'POST CHECK', 1, 0, '2026-06-01 11:47:16', NULL, NULL, NULL, 0),
 (43, 7, 'Post Check', 0, 0, '2026-06-01 12:23:45', NULL, NULL, NULL, 0),
 (44, 7, 'Test uli after admin', 1, 0, '2026-06-01 12:23:56', NULL, NULL, NULL, 0),
-(45, 6, 'TITE ONLINE CHECK', 0, 0, '2026-06-01 12:24:12', NULL, NULL, NULL, 0),
+(45, 6, 'ONLINE CHECK', 0, 0, '2026-06-01 12:24:12', NULL, NULL, NULL, 0),
 (46, 8, 'CARLINE FIRST POST', 0, 0, '2026-06-01 12:32:04', NULL, NULL, NULL, 0),
 (47, 8, 'Post Check', 0, 0, '2026-06-01 12:32:27', 43, 'ashley', NULL, 0),
 (48, 6, 'post', 0, 0, '2026-06-02 13:38:50', NULL, NULL, NULL, 0),
-(49, 6, 'tite\r\nka ba', 0, 0, '2026-06-02 13:38:58', NULL, NULL, NULL, 0),
+(49, 6, 'test_post', 0, 0, '2026-06-02 13:38:58', NULL, NULL, NULL, 0),
 (50, 8, 'ttttt', 0, 0, '2026-06-02 13:55:09', NULL, NULL, NULL, 0),
 (51, 8, 'test anon', 1, 0, '2026-06-06 13:19:38', NULL, NULL, NULL, 0),
 (52, 8, 'test anon 1', 1, 0, '2026-06-06 13:19:46', NULL, NULL, NULL, 0),
@@ -206,7 +216,7 @@ INSERT INTO `reactions` (`reaction_ID`, `rant_ID`, `user_ID`, `type`) VALUES
 (179, 43, 8, '❤️'),
 (180, 45, 7, '❤️'),
 (177, 45, 8, '😂'),
-(181, 50, 6, '😂');
+(183, 50, 6, '😢');
 
 -- --------------------------------------------------------
 
@@ -247,8 +257,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_ID`, `username`, `password`, `role`, `status`, `avatar`, `bio`, `created_at`, `last_active_at`, `theme`, `cover`) VALUES
-(5, 'Sierra_Admin', '123456', 'admin', 'active', NULL, NULL, '2026-05-29 02:16:46', '2026-06-06 22:18:08', 'dark', NULL),
-(6, 'tite', '111111', 'user', 'active', 'uploads/avatar_6_1780557923.jpg', '', '2026-06-01 11:19:10', '2026-06-07 17:15:13', 'dark', 'uploads/cover_6_1780557929.jpg'),
+(5, 'Sierra_Admin', '123456', 'admin', 'active', NULL, NULL, '2026-05-29 02:16:46', '2026-06-08 12:05:24', 'dark', NULL),
+(6, 'test_user', '111111', 'user', 'active', 'uploads/avatar_6_1780557923.jpg', '', '2026-06-01 11:19:10', '2026-06-08 12:10:14', 'dark', 'uploads/cover_6_1780557929.jpg'),
 (7, 'ashley', '111111', 'user', 'active', NULL, NULL, '2026-06-01 11:23:02', '2026-06-01 20:53:00', 'dark', NULL),
 (8, 'carline', '111111', 'user', 'active', NULL, NULL, '2026-06-01 12:31:50', '2026-06-06 21:19:57', 'dark', NULL);
 
@@ -361,19 +371,19 @@ ALTER TABLE `comment_reactions`
 -- AUTO_INCREMENT for table `follows`
 --
 ALTER TABLE `follows`
-  MODIFY `follow_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `follow_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `message_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `message_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notif_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `notif_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `rants`
@@ -385,7 +395,7 @@ ALTER TABLE `rants`
 -- AUTO_INCREMENT for table `reactions`
 --
 ALTER TABLE `reactions`
-  MODIFY `reaction_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=183;
+  MODIFY `reaction_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=184;
 
 --
 -- AUTO_INCREMENT for table `reports`

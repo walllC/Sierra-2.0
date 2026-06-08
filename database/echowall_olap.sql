@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 07, 2026 at 11:22 AM
+-- Generation Time: Jun 08, 2026 at 06:12 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -96,7 +96,7 @@ CREATE TABLE `dim_user` (
 
 INSERT INTO `dim_user` (`user_key`, `source_user_id`, `username`, `role`, `status`, `created_at`) VALUES
 (1, 5, 'Sierra_Admin', 'admin', 'active', '2026-05-29 10:16:46'),
-(2, 6, 'tite', 'user', 'active', '2026-06-01 19:19:10'),
+(2, 6, 'test_user', 'user', 'active', '2026-06-01 19:19:10'),
 (3, 7, 'ashley', 'user', 'active', '2026-06-01 19:23:02'),
 (4, 8, 'carline', 'user', 'active', '2026-06-01 20:31:50');
 
@@ -127,7 +127,7 @@ INSERT INTO `fact_rants` (`fact_id`, `source_rant_id`, `time_key`, `user_key`, `
 (2, 37, 1, 2, 2, 0, 0, 0, '2026-06-06 21:37:43'),
 (3, 38, 1, 1, 1, 0, 0, 0, '2026-06-06 21:37:43'),
 (4, 39, 1, 2, 2, 0, 0, 0, '2026-06-06 21:37:43'),
-(5, 40, 1, 3, 1, 0, 0, 0, '2026-06-06 21:37:43'),
+(5, 40, 1, 3, 1, 1, 0, 0, '2026-06-06 21:37:43'),
 (6, 41, 2, 2, 1, 1, 0, 0, '2026-06-06 21:37:43'),
 (7, 42, 2, 2, 2, 0, 0, 0, '2026-06-06 21:37:43'),
 (8, 43, 3, 3, 1, 1, 0, 0, '2026-06-06 21:37:43'),
@@ -192,19 +192,19 @@ ALTER TABLE `dim_rant_type`
 -- AUTO_INCREMENT for table `dim_time`
 --
 ALTER TABLE `dim_time`
-  MODIFY `time_key` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `time_key` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `dim_user`
 --
 ALTER TABLE `dim_user`
-  MODIFY `user_key` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `user_key` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `fact_rants`
 --
 ALTER TABLE `fact_rants`
-  MODIFY `fact_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `fact_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- Constraints for dumped tables
