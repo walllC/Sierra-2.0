@@ -1,4 +1,4 @@
-# RantBox (EchoWall Sierra 2.0)
+EchoWall
 A social media web application where users can post rants, react, comment, and interact with others anonymously or publicly.
 
 
