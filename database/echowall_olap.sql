@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 08, 2026 at 01:10 PM
+-- Generation Time: Jun 09, 2026 at 02:59 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -73,7 +73,9 @@ INSERT INTO `dim_time` (`time_key`, `full_date`, `hour`, `day_of_week`, `day_of_
 (2, '2026-06-01', 19, 'Monday', 1, 23, 6, 'June', 2, 2026, 0),
 (3, '2026-06-01', 20, 'Monday', 1, 23, 6, 'June', 2, 2026, 0),
 (4, '2026-06-02', 21, 'Tuesday', 2, 23, 6, 'June', 2, 2026, 0),
-(5, '2026-06-06', 21, 'Saturday', 6, 23, 6, 'June', 2, 2026, 1);
+(5, '2026-06-06', 21, 'Saturday', 6, 23, 6, 'June', 2, 2026, 1),
+(26, '2026-06-08', 19, 'Monday', 8, 24, 6, 'June', 2, 2026, 0),
+(27, '2026-06-09', 8, 'Tuesday', 9, 24, 6, 'June', 2, 2026, 0);
 
 -- --------------------------------------------------------
 
@@ -98,7 +100,9 @@ INSERT INTO `dim_user` (`user_key`, `source_user_id`, `username`, `role`, `statu
 (1, 5, 'Sierra_Admin', 'admin', 'active', '2026-05-29 10:16:46'),
 (2, 6, 'test_user', 'user', 'active', '2026-06-01 19:19:10'),
 (3, 7, 'ashley', 'user', 'active', '2026-06-01 19:23:02'),
-(4, 8, 'carline', 'user', 'active', '2026-06-01 20:31:50');
+(4, 8, 'carline', 'user', 'active', '2026-06-01 20:31:50'),
+(21, 9, 'test_pass', 'user', 'active', '2026-06-08 12:59:25'),
+(22, 10, 'another', 'user', 'active', '2026-06-08 18:56:50');
 
 -- --------------------------------------------------------
 
@@ -140,8 +144,11 @@ INSERT INTO `fact_rants` (`fact_id`, `source_rant_id`, `time_key`, `user_key`, `
 (15, 50, 4, 4, 1, 1, 0, 0, '2026-06-06 21:37:43'),
 (16, 51, 5, 4, 2, 0, 0, 0, '2026-06-06 21:37:43'),
 (17, 52, 5, 4, 2, 0, 0, 0, '2026-06-06 21:37:43'),
-(18, 53, 5, 4, 2, 0, 0, 0, '2026-06-06 21:37:43'),
-(19, 54, 5, 4, 2, 0, 0, 0, '2026-06-06 21:37:43');
+(18, 53, 5, 4, 2, 1, 0, 0, '2026-06-06 21:37:43'),
+(19, 54, 5, 4, 2, 1, 0, 0, '2026-06-06 21:37:43'),
+(91, 55, 26, 22, 1, 1, 0, 0, '2026-06-09 08:44:46'),
+(92, 56, 27, 4, 1, 0, 0, 0, '2026-06-09 08:44:46'),
+(93, 57, 27, 4, 1, 0, 0, 1, '2026-06-09 08:44:46');
 
 --
 -- Indexes for dumped tables
@@ -192,19 +199,19 @@ ALTER TABLE `dim_rant_type`
 -- AUTO_INCREMENT for table `dim_time`
 --
 ALTER TABLE `dim_time`
-  MODIFY `time_key` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `time_key` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `dim_user`
 --
 ALTER TABLE `dim_user`
-  MODIFY `user_key` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `user_key` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `fact_rants`
 --
 ALTER TABLE `fact_rants`
-  MODIFY `fact_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `fact_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- Constraints for dumped tables

@@ -246,6 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span class="time">· ${r.created_at}</span>
                     </div>
                     <div class="a-rant-text"><strong>Reason:</strong> ${r.reason}</div>
+                    ${r.description ? `<div class="a-rant-text" style="margin-top:4px"><strong>Description:</strong> ${Utils.escapeHtml(r.description)}</div>` : ''}
                     <div class="a-rant-text" style="margin-top:4px">
                         Rant by <strong>@${r.rant_author}</strong>: ${r.rant_content}
                     </div>

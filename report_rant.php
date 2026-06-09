@@ -11,13 +11,11 @@ if (!isset($_SESSION['user_ID'])) {
 
 $rant_id     = intval($_POST['rant_id'] ?? 0);
 $reason      = trim($_POST['reason'] ?? '');
+$description = trim($_POST['description'] ?? '');
 $reporter_id = intval($_SESSION['user_ID']);
 
-// Debug — remove after confirming it works
-error_log("rant_id: $rant_id | reason: $reason | reporter_id: $reporter_id");
-
 if (!$rant_id || empty($reason)) {
-    echo json_encode(['ok' => false, 'error' => 'Invalid data - reason: ' . $reason]);
+    echo json_encode(['ok' => false, 'error' => 'Invalid data']);
     exit;
 }
 
@@ -28,8 +26,10 @@ if (mysqli_num_rows($check) > 0) {
     exit;
 }
 
-$reason_escaped = mysqli_real_escape_string($conn, $reason);
-$sql = "INSERT INTO reports (rant_id, reporter_id, reason) VALUES ($rant_id, $reporter_id, '$reason_escaped')";
+$reason_escaped      = mysqli_real_escape_string($conn, $reason);
+$description_escaped = mysqli_real_escape_string($conn, $description);
+
+$sql = "INSERT INTO reports (rant_id, reporter_id, reason, description) VALUES ($rant_id, $reporter_id, '$reason_escaped', '$description_escaped')";
 
 if (mysqli_query($conn, $sql)) {
     echo json_encode(['ok' => true]);

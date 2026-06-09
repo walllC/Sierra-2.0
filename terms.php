@@ -388,9 +388,6 @@ $lastUpdated = "June 2026";
   <footer>
     <div class="footer-logo">Echo<span>Wall</span></div>
     <ul class="footer-links">
-      <li><a href="#">About</a></li>
-      <li><a href="#">Privacy</a></li>
-      <li><a href="terms.php">Terms</a></li>
     </ul>
     <p class="footer-quote">"Scream into the void. The void screams back." — EchoWall &copy; <?php echo date('Y'); ?></p>
   </footer>

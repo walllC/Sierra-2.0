@@ -955,7 +955,7 @@ const Storage = (() => {
     // ── Rants ──────────────────────────────────────────────
     getRants, saveRants, addRant, getRantById, updateRant, deleteRant, getRantsByUser,
     toggleLike, toggleReaction, getUserReaction, repost, getTrendingRants,
-    getRantsAsync, getRantsByUserAsync, getTrendingRantsAsync, repostAsync,
+    getRantsAsync, getRantsByUserAsync, getArchivedRantsAsync, getTrendingRantsAsync, repostAsync,
 
     // ── Comments ───────────────────────────────────────────
     getComments, addComment, getCommentsByRant, getRepliesByComment,

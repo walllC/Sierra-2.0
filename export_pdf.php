@@ -204,7 +204,7 @@ $fill = false;
 foreach ($recent_rants as $row) {
     $content = mb_strimwidth($row['content'], 0, 55, '...');
     $anon    = $row['anonymous'] ? 'Yes' : 'No';
-    $date    = date('m/d H:i', strtotime($row['created_at']));i
+    $date    = date('m/d H:i', strtotime($row['created_at']));
     $user    = $row['anonymous'] ? 'Anon' : '@' . $row['username'];
     $pdf->SetFillColor($fill ? 250 : 255, $fill ? 248 : 255, $fill ? 255 : 255);
     $pdf->Cell(30, 7, $user,             1, 0, 'L', $fill);

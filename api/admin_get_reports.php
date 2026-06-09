@@ -8,6 +8,7 @@ $result = $conn->query("
     rp.id,
     rp.rant_id,
     rp.reason,
+    rp.description,
     rp.created_at,
     reporter.username as reporter,
     r.content as rant_content,

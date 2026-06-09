@@ -1136,29 +1136,43 @@ document.addEventListener('DOMContentLoaded', () => {
               return;
             }
             rants.forEach(r => {
-              const card = buildCard(r, false);
-              const actions = card.querySelector('.post-actions');
-              if (actions) {
-                const unBtn = document.createElement('button');
-                unBtn.className = 'action-btn';
-                unBtn.title = 'Unarchive';
-                unBtn.innerHTML = '<span class="a-icon">📤</span>';
-                unBtn.addEventListener('click', () => {
-                  const fd = new FormData();
-                  fd.append('action', 'unarchive_rant');
-                  fd.append('rant_id', r.rant_ID || r.id);
-                  fetch('storage_api.php', { method: 'POST', body: fd })
-                    .then(res => res.json())
-                    .then(data => {
-                      if (data.success) { card.remove(); Utils.showToast('Rant unarchived!', 'success'); }
-                      else Utils.showToast(`Failed to unarchive: ${data.error || 'Unknown error'}`, 'error');
-                    })
-                    .catch(() => Utils.showToast('Network error unarchiving rant', 'error'));
-                });
-                actions.appendChild(unBtn);
-              }
-              pf.appendChild(card);
-            });
+  const card = buildCard(r, true);  // true = readOnly
+  const actions = card.querySelector('.post-actions');
+  if (actions) {
+    // Wipe ALL action buttons, keep only Unarchive + Delete
+    actions.innerHTML = `
+      <button class="action-btn unarchive-btn" title="Unarchive"><span class="a-icon">📤</span></button>
+      <button class="action-btn del-archived-btn" title="Delete"><span class="a-icon">🗑️</span></button>
+    `;
+
+    actions.querySelector('.unarchive-btn').addEventListener('click', () => {
+      const fd = new FormData();
+      fd.append('action', 'unarchive_rant');
+      fd.append('rant_id', r.rant_ID || r.id);
+      fetch('storage_api.php', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) { card.remove(); Utils.showToast('Rant unarchived!', 'success'); }
+          else Utils.showToast(data.error || 'Failed to unarchive', 'error');
+        })
+        .catch(() => Utils.showToast('Network error', 'error'));
+    });
+
+    actions.querySelector('.del-archived-btn').addEventListener('click', () => {
+      if (!confirm('Delete this rant permanently?')) return;
+      const fd = new FormData();
+      fd.append('rant_id', r.rant_ID || r.id);
+      fetch('api/delete_rant.php', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) { card.remove(); Utils.showToast('Deleted.', 'info'); }
+          else Utils.showToast(data.message || 'Failed to delete', 'error');
+        })
+        .catch(() => Utils.showToast('Network error', 'error'));
+    });
+  }
+  pf.appendChild(card);
+});
           })
           .catch(err => {
             console.error('Archived rants error:', err);
@@ -1467,52 +1481,69 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const reasonsHTML = reasons.map(([val, label]) =>
-      `<label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);width:100%;box-sizing:border-box;">
-        <input type="radio" name="report-reason" value="${val}" style="width:16px;height:16px;flex-shrink:0;accent-color:var(--accent);cursor:pointer;"/>
-        <span style="flex:1;">${label}</span>
-      </label>`
-    ).join('');
+  `<label style="display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);width:100%;box-sizing:border-box;">
+    <input type="radio" name="report-reason" value="${val}" style="width:16px;height:16px;flex-shrink:0;accent-color:var(--accent);cursor:pointer;"/>
+    <span style="flex:1;">${label}</span>
+  </label>`
+).join('');
 
     modal.innerHTML = `<div class="modal-box">
-      <h3>Report Rant</h3>
-      <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Why are you reporting this rant?</p>
-      <div style="display:flex;flex-direction:column;gap:8px">${reasonsHTML}</div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="r-cancel">Cancel</button>
-        <button class="btn btn-danger-soft btn-sm" id="r-submit">Submit Report</button>
-      </div></div>`;
+  <h3>Report Rant</h3>
+  <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Why are you reporting this rant?</p>
+  <div style="display:flex;flex-direction:column;gap:8px">${reasonsHTML}</div>
+  <div id="other-desc-wrap" style="display:none;margin-top:10px">
+    <textarea id="other-desc" rows="3" placeholder="Please describe the issue..." 
+      style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text1);font-size:14px;resize:vertical"></textarea>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost btn-sm" id="r-cancel">Cancel</button>
+    <button class="btn btn-danger-soft btn-sm" id="r-submit">Submit Report</button>
+  </div></div>`;
 
     document.body.appendChild(modal);
     requestAnimationFrame(() => modal.classList.add('open'));
+    // Show textarea when "Other" is selected
+modal.querySelectorAll('input[name="report-reason"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const wrap = modal.querySelector('#other-desc-wrap');
+    wrap.style.display = radio.value === 'other' ? 'block' : 'none';
+  });
+});
 
     modal.querySelector('#r-cancel').addEventListener('click', () => {
       modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
     });
 
     modal.querySelector('#r-submit').addEventListener('click', () => {
-      const reason = modal.querySelector('input[name="report-reason"]:checked');
-      if (!reason) { Utils.showToast('Pick a reason.', 'warning'); return; }
+  const reason = modal.querySelector('input[name="report-reason"]:checked');
+  if (!reason) { Utils.showToast('Pick a reason.', 'warning'); return; }
 
-      const submitBtn = modal.querySelector('#r-submit');
-      submitBtn.disabled = true; submitBtn.textContent = 'Submitting…';
+  const otherDesc = modal.querySelector('#other-desc').value.trim();
+  if (reason.value === 'other' && !otherDesc) {
+    Utils.showToast('Please describe the issue.', 'warning'); return;
+  }
 
-      const formData = new FormData();
-      formData.append('rant_id', rant.id || rant.rant_ID);
-      formData.append('reason', reason.value);
+  const submitBtn = modal.querySelector('#r-submit');
+  submitBtn.disabled = true; submitBtn.textContent = 'Submitting…';
 
-      fetch('report_rant.php', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-          modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
-          if (data.ok)                             Utils.showToast('Reported. Thank you.', 'success');
-          else if (data.error === 'Already reported') Utils.showToast('You already reported this rant.', 'warning');
-          else                                     Utils.showToast(data.error || 'Something went wrong.', 'error');
-        })
-        .catch(() => {
-          Utils.showToast('Network error. Try again.', 'error');
-          submitBtn.disabled = false; submitBtn.textContent = 'Submit Report';
-        });
+  const formData = new FormData();
+  formData.append('rant_id', rant.id || rant.rant_ID);
+  formData.append('reason', reason.value);
+  if (reason.value === 'other') formData.append('description', otherDesc);
+
+  fetch('report_rant.php', { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(data => {
+      modal.classList.remove('open'); setTimeout(() => modal.remove(), 200);
+      if (data.ok)                                Utils.showToast('Reported. Thank you.', 'success');
+      else if (data.error === 'Already reported') Utils.showToast('You already reported this rant.', 'warning');
+      else                                        Utils.showToast(data.error || 'Something went wrong.', 'error');
+    })
+    .catch(() => {
+      Utils.showToast('Network error. Try again.', 'error');
+      submitBtn.disabled = false; submitBtn.textContent = 'Submit Report';
     });
+});
 
     // Click outside modal → close
     modal.addEventListener('click', e => {

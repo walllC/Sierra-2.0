@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 08, 2026 at 01:10 PM
+-- Generation Time: Jun 09, 2026 at 02:58 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -143,12 +143,11 @@ INSERT INTO `notifications` (`notif_ID`, `from_user_ID`, `to_user_ID`, `type`, `
 (22, 8, 7, 'reaction', 'reacted ❤️ to your rant.', 43, NULL, '2026-06-01 12:32:25', 1),
 (23, 8, 7, 'repost', 'reposted your rant.', 43, NULL, '2026-06-01 12:32:28', 1),
 (24, 7, 6, 'reaction', 'reacted ❤️ to your rant.', 45, NULL, '2026-06-01 12:52:56', 1),
-(25, 6, 8, 'reaction', 'reacted 😂 to your rant.', 50, NULL, '2026-06-04 09:06:30', 0),
 (26, 6, 7, 'follow', 'started following you.', NULL, NULL, '2026-06-07 09:12:21', 0),
 (27, 6, 7, 'reaction', 'reacted 😡 to your rant.', 40, NULL, '2026-06-07 09:14:46', 0),
-(28, 6, 8, 'reaction', 'reacted 😢 to your rant.', 50, NULL, '2026-06-08 03:31:01', 0),
 (29, 6, 7, 'message', 'sent you a message.', NULL, NULL, '2026-06-08 03:32:51', 0),
-(30, 6, 7, 'follow', 'started following you.', NULL, NULL, '2026-06-08 03:37:08', 0);
+(30, 6, 7, 'follow', 'started following you.', NULL, NULL, '2026-06-08 03:37:08', 0),
+(31, 8, 10, 'repost', 'reposted your rant.', 55, NULL, '2026-06-09 00:38:43', 0);
 
 -- --------------------------------------------------------
 
@@ -187,12 +186,13 @@ INSERT INTO `rants` (`rant_ID`, `user_ID`, `content`, `anonymous`, `is_anonymous
 (47, 8, 'Post Check', 0, 0, '2026-06-01 12:32:27', 43, 'ashley', NULL, 0),
 (48, 6, 'post', 0, 0, '2026-06-02 13:38:50', NULL, NULL, NULL, 0),
 (49, 6, 'test_post', 0, 0, '2026-06-02 13:38:58', NULL, NULL, NULL, 0),
-(50, 8, 'ttttt', 0, 0, '2026-06-02 13:55:09', NULL, NULL, NULL, 0),
 (51, 8, 'test anon', 1, 0, '2026-06-06 13:19:38', NULL, NULL, NULL, 0),
 (52, 8, 'test anon 1', 1, 0, '2026-06-06 13:19:46', NULL, NULL, NULL, 0),
 (53, 8, 'test anon 2', 1, 0, '2026-06-06 13:19:51', NULL, NULL, NULL, 0),
-(54, 8, 'test anon 3', 1, 0, '2026-06-06 13:19:57', NULL, NULL, NULL, 0),
-(55, 10, 'whahaha', 0, 0, '2026-06-08 11:02:32', NULL, NULL, NULL, 0);
+(54, 8, 'test anon 3', 1, 0, '2026-06-06 13:19:57', NULL, NULL, NULL, 1),
+(55, 10, 'whahaha', 0, 0, '2026-06-08 11:02:32', NULL, NULL, NULL, 0),
+(56, 8, 'edit', 0, 0, '2026-06-09 00:38:14', NULL, NULL, NULL, 0),
+(57, 8, 'whahaha', 0, 0, '2026-06-09 00:38:43', 55, 'another', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -217,7 +217,6 @@ INSERT INTO `reactions` (`reaction_ID`, `rant_ID`, `user_ID`, `type`) VALUES
 (179, 43, 8, '❤️'),
 (180, 45, 7, '❤️'),
 (177, 45, 8, '😂'),
-(183, 50, 6, '😢'),
 (186, 53, 10, '😢'),
 (185, 54, 10, '😡'),
 (188, 55, 10, '😢');
@@ -233,8 +232,16 @@ CREATE TABLE `reports` (
   `rant_id` int(11) NOT NULL,
   `reporter_id` int(11) NOT NULL,
   `reason` varchar(100) NOT NULL DEFAULT '',
+  `description` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reports`
+--
+
+INSERT INTO `reports` (`id`, `rant_id`, `reporter_id`, `reason`, `description`, `created_at`) VALUES
+(22, 42, 8, 'other', 'test', '2026-06-09 00:58:15');
 
 -- --------------------------------------------------------
 
@@ -261,12 +268,12 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_ID`, `username`, `password`, `role`, `status`, `avatar`, `bio`, `created_at`, `last_active_at`, `theme`, `cover`) VALUES
-(5, 'Sierra_Admin', '$2y$10$k/YQSmixUE3.r7KYMh4tpeg6iVCNYrkJaNTMPmkN7idy0hvRPQBRS', 'admin', 'active', NULL, NULL, '2026-05-29 02:16:46', '2026-06-08 18:02:09', 'dark', NULL),
+(5, 'Sierra_Admin', '$2y$10$k/YQSmixUE3.r7KYMh4tpeg6iVCNYrkJaNTMPmkN7idy0hvRPQBRS', 'admin', 'active', NULL, NULL, '2026-05-29 02:16:46', '2026-06-09 08:58:36', 'dark', NULL),
 (6, 'test_user', '$2y$10$VDNMu4Dsz3B4Rx11cJs4A.VKFlGzvE5Ulkv1fJ3DBQRDzw3KJjdCe', 'user', 'active', 'uploads/avatar_6_1780557923.jpg', '', '2026-06-01 11:19:10', '2026-06-08 18:21:36', 'dark', 'uploads/cover_6_1780557929.jpg'),
 (7, 'ashley', '$2y$10$F6DqvBE30vSq0YaVZZ/hxuUsckHtz8q.k7q4NuFcTXU6pqb4ZJzfq', 'user', 'active', NULL, NULL, '2026-06-01 11:23:02', '2026-06-01 20:53:00', 'dark', NULL),
-(8, 'carline', '$2y$10$lWaqD5X8dZ5tIjdPHBtzoubwd8vAGugKug65nx/qG6KPguDLz4SFa', 'user', 'active', NULL, NULL, '2026-06-01 12:31:50', '2026-06-08 18:55:23', 'dark', NULL),
+(8, 'carline', '$2y$10$lWaqD5X8dZ5tIjdPHBtzoubwd8vAGugKug65nx/qG6KPguDLz4SFa', 'user', 'active', 'uploads/avatar_8_1780964738.jpg', '', '2026-06-01 12:31:50', '2026-06-09 08:58:15', 'dark', 'uploads/cover_8_1780964738.jpg'),
 (9, 'test_pass', '$2y$10$HQvwLS6.UwysH3zrcsaaH.rp7043UIzAcGsnyyNJaoBaV1PfXAx42', 'user', 'active', NULL, NULL, '2026-06-08 04:59:25', '2026-06-08 12:59:32', 'dark', NULL),
-(10, 'another', '$2y$10$KebkytUhN/TwaWht/TxaTe7G9NrNq/bE7lBxc.pNmlSYNEm.9dH8O', 'user', 'active', NULL, NULL, '2026-06-08 10:56:50', '2026-06-08 19:08:34', 'dark', NULL);
+(10, 'another', '$2y$10$KebkytUhN/TwaWht/TxaTe7G9NrNq/bE7lBxc.pNmlSYNEm.9dH8O', 'user', 'active', NULL, NULL, '2026-06-08 10:56:50', '2026-06-09 08:26:44', 'dark', NULL);
 
 --
 -- Indexes for dumped tables
@@ -389,25 +396,25 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notif_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `notif_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `rants`
 --
 ALTER TABLE `rants`
-  MODIFY `rant_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `rant_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `reactions`
 --
 ALTER TABLE `reactions`
-  MODIFY `reaction_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
+  MODIFY `reaction_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=190;
 
 --
 -- AUTO_INCREMENT for table `reports`
 --
 ALTER TABLE `reports`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `users`
